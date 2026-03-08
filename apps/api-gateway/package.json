@@ -1,0 +1,63 @@
+{
+  "name": "api-gateway",
+  "version": "0.0.1",
+  "description": "",
+  "author": "",
+  "private": true,
+  "license": "UNLICENSED",
+  "scripts": {
+    "build": "nest build",
+    "postbuild": "cp -r ../../packages/proto dist/proto",
+    "dev": "nodemon --watch src/ --ext ts,js,json --exec \"bun run build && node dist/main.js\"",
+    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
+    "start": "node dist/main",
+    "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix"
+  },
+  "dependencies": {
+    "@nestjs/common": "catalog:nestjs",
+    "@nestjs/core": "catalog:nestjs",
+    "@nestjs/config": "catalog:nestjs",
+    "@nestjs/mapped-types": "*",
+    "@nestjs/microservices": "catalog:nestjs",
+    "@nestjs/platform-fastify": "^11.1.14",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.15.1",
+    "passport-google-oauth20": "^2.0.0",
+    "@nestjs/passport": "catalog:nestjs",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "catalog:nestjs"
+  },
+  "devDependencies": {
+    "@nestjs/cli": "^11.0.0",
+    "@nestjs/schematics": "^11.0.0",
+    "@rekode/eslint-config": "workspace:*",
+    "@rekode/types": "workspace:*",
+    "@rekode/typescript-config": "workspace:*",
+    "@types/node": "catalog:",
+    "@types/passport-google-oauth20": "^2.0.17",
+    "jest": "^30.0.0",
+    "nodemon": "^3.1.14",
+    "source-map-support": "^0.5.21",
+    "ts-loader": "^9.5.2",
+    "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "catalog:"
+  },
+  "jest": {
+    "moduleFileExtensions": [
+      "js",
+      "json",
+      "ts"
+    ],
+    "rootDir": "src",
+    "testRegex": ".*\\.spec\\.ts$",
+    "transform": {
+      "^.+\\.(t|j)s$": "ts-jest"
+    },
+    "collectCoverageFrom": [
+      "**/*.(t|j)s"
+    ],
+    "coverageDirectory": "../coverage",
+    "testEnvironment": "node"
+  }
+}

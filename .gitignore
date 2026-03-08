@@ -22,10 +22,17 @@ coverage
 .vercel
 
 # Build Outputs
+.nitro
+.tanstack
+.astro/
+.vinxi
 .next/
+.output
 out/
+**/generated/prisma
 build
 dist
+dist-ssr
 
 
 # Debug
@@ -36,3 +43,5 @@ yarn-error.log*
 # Misc
 .DS_Store
 *.pem
+__unconfig*
+todos.json

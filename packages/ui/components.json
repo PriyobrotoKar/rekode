@@ -1,0 +1,20 @@
+{
+  "$schema": "https://ui.shadcn.com/schema.json",
+  "style": "base-maia",
+  "rsc": true,
+  "tsx": true,
+  "tailwind": {
+    "config": "",
+    "css": "src/styles/globals.css",
+    "baseColor": "neutral",
+    "cssVariables": true
+  },
+  "iconLibrary": "tabler",
+  "aliases": {
+    "components": "@rekode/ui/components",
+    "utils": "@rekode/ui/lib/utils",
+    "hooks": "@rekode/ui/hooks",
+    "lib": "@rekode/ui/lib",
+    "ui": "@rekode/ui/components"
+  }
+}

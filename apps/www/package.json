@@ -1,0 +1,29 @@
+{
+  "name": "www",
+  "type": "module",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/react": "^4.4.2",
+    "@fontsource-variable/space-grotesk": "catalog:font",
+    "@fontsource-variable/work-sans": "catalog:font",
+    "@rekode/ui": "workspace:*",
+    "@tailwindcss/vite": "catalog:",
+    "astro": "^5.17.1",
+    "react": "catalog:react19",
+    "react-dom": "catalog:react19",
+    "tailwindcss": "catalog:"
+  },
+  "devDependencies": {
+    "@rekode/eslint-config": "workspace:*",
+    "@rekode/typescript-config": "workspace:*",
+    "@types/react": "catalog:react19",
+    "@types/react-dom": "catalog:react19",
+    "typescript": "catalog:"
+  }
+}
