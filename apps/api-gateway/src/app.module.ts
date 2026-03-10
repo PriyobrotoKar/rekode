@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ClientsModule, Transport } from '@nestjs/microservices';
-import { AUTH_PACKAGE_NAME } from '@rekode/types/proto/auth';
-import { USER_PACKAGE_NAME } from '@rekode/types/proto/user';
+import { AUTH_PACKAGE_NAME } from '@rekode/types/server/proto/auth';
+import { USER_PACKAGE_NAME } from '@rekode/types/server/proto/user';
 import { join } from 'node:path';
 
 import { AppController } from './app.controller';

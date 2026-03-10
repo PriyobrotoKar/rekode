@@ -1,13 +1,12 @@
+import { EmptyProjects } from '@/features/projects/components/empty-projects';
 import { createFileRoute } from '@tanstack/react-router';
 
-import { Button } from '@rekode/ui/components/button';
+export const Route = createFileRoute('/')({ component: DashboardPage });
 
-export const Route = createFileRoute('/')({ component: App });
-
-function App() {
+function DashboardPage() {
   return (
-    <main>
-      <Button>Click me!</Button>
+    <main className="flex min-h-screen items-center justify-center">
+      <EmptyProjects />
     </main>
   );
 }

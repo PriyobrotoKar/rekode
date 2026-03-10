@@ -8,6 +8,7 @@ import {
   OnModuleInit,
   Post,
   Req,
+  Res,
   UseGuards,
 } from '@nestjs/common';
 import { type ClientGrpc } from '@nestjs/microservices';
@@ -16,8 +17,9 @@ import {
   AUTH_SERVICE_NAME,
   AuthServiceClient,
   OAuthProvider,
-} from '@rekode/types/proto/auth';
-import type { FastifyRequest } from 'fastify';
+} from '@rekode/types/server/proto/auth';
+import type { FastifyReply, FastifyRequest } from 'fastify';
+import { firstValueFrom } from 'rxjs';
 
 import { EmailLoginDto } from './dto/email-login.dto';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
@@ -51,13 +53,24 @@ export class AuthController implements OnModuleInit {
 
   @Get('google/callback')
   @UseGuards(GoogleAuthGuard)
-  handleGoogleCallback(@Req() { user }: FastifyRequest & { user: GoogleUser }) {
-    return this.authService.loginWithOAuth({
-      email: user.email,
-      name: `${user.firstName} ${user.lastName}`,
-      profilePicture: user.picture,
-      accountId: user.accountId,
-      provider: OAuthProvider.O_AUTH_PROVIDER_GOOGLE,
-    });
+  async handleGoogleCallback(
+    @Req() { user }: FastifyRequest & { user: GoogleUser },
+    @Res({ passthrough: true }) res: FastifyReply,
+  ) {
+    const data = await firstValueFrom(
+      this.authService.loginWithOAuth({
+        email: user.email,
+        name: `${user.firstName} ${user.lastName}`,
+        profilePicture: user.picture,
+        accountId: user.accountId,
+        provider: OAuthProvider.O_AUTH_PROVIDER_GOOGLE,
+      }),
+    );
+
+    return res
+      .status(302)
+      .redirect(
+        `http://localhost:3000/auth/login?success=true&accessToken=${data.accessToken}&refreshToken=${data.refreshToken}&provider=${OAuthProvider.O_AUTH_PROVIDER_GOOGLE}`,
+      );
   }
 }

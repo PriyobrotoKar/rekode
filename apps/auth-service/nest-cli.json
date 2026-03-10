@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json.schemastore.org/nest-cli",
+  "collection": "@nestjs/schematics",
+  "sourceRoot": "src",
+  "compilerOptions": {
+    "deleteOutDir": true,
+    "assets": [
+      {
+        "include": "../../../packages/proto/auth.proto",
+        "outDir": "dist/src/packages/auth.proto"
+      },
+      {
+        "include": "../../../packages/proto/user.proto",
+        "outDir": "dist/src/packages/user.proto"
+      }
+    ],
+    "watchAssets": true
+  }
+}

@@ -1,0 +1,72 @@
+{
+  "name": "auth-service",
+  "version": "0.0.1",
+  "description": "",
+  "author": "",
+  "private": true,
+  "license": "UNLICENSED",
+  "scripts": {
+    "build": "nest build",
+    "dev": "nest start --watch",
+    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
+    "start": "node dist/main",
+    "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix"
+  },
+  "dependencies": {
+    "@grpc/grpc-js": "catalog:nestjs",
+    "@grpc/proto-loader": "catalog:nestjs",
+    "@keyv/redis": "catalog:nestjs",
+    "@nestjs/cache-manager": "catalog:nestjs",
+    "@nestjs/common": "catalog:nestjs",
+    "@nestjs/config": "catalog:nestjs",
+    "@nestjs/core": "catalog:nestjs",
+    "@nestjs/jwt": "^11.0.2",
+    "@nestjs/microservices": "catalog:nestjs",
+    "@nestjs/platform-express": "catalog:nestjs",
+    "@nestjs/passport": "catalog:nestjs",
+    "@prisma/adapter-pg": "catalog:prisma",
+    "@prisma/client": "catalog:prisma",
+    "@types/express": "catalog:",
+    "argon2": "^0.44.0",
+    "cache-manager": "catalog:nestjs",
+    "kafkajs": "catalog:",
+    "passport-jwt": "^4.0.1",
+    "pg": "catalog:",
+    "reflect-metadata": "catalog:",
+    "rxjs": "catalog:nestjs"
+  },
+  "devDependencies": {
+    "@nestjs/cli": "catalog:nestjs",
+    "@nestjs/schematics": "catalog:nestjs",
+    "@rekode/eslint-config": "workspace:*",
+    "@rekode/types": "workspace:*",
+    "@rekode/typescript-config": "workspace:*",
+    "@types/node": "catalog:",
+    "@types/passport-jwt": "^4.0.1",
+    "@types/pg": "^8.18.0",
+    "jest": "catalog:",
+    "prisma": "catalog:prisma",
+    "source-map-support": "catalog:",
+    "ts-loader": "catalog:",
+    "ts-node": "catalog:",
+    "tsconfig-paths": "catalog:",
+    "typescript": "catalog:"
+  },
+  "jest": {
+    "moduleFileExtensions": [
+      "js",
+      "json",
+      "ts"
+    ],
+    "rootDir": "src",
+    "testRegex": ".*\\.spec\\.ts$",
+    "transform": {
+      "^.+\\.(t|j)s$": "ts-jest"
+    },
+    "collectCoverageFrom": [
+      "**/*.(t|j)s"
+    ],
+    "coverageDirectory": "../coverage",
+    "testEnvironment": "node"
+  }
+}

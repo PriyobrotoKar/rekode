@@ -1,0 +1,46 @@
+syntax = "proto3";
+
+package auth;
+
+service AuthService {
+  rpc LoginWithEmail (LoginWithEmailRequest) returns (LoginWithEmailResponse) {}
+  rpc VerifyOtp (VerifyOtpRequest) returns (VerifyOtpResponse) {}
+  rpc LoginWithOAuth (LoginWithOAuthRequest) returns (LoginWithOAuthResponse) {}
+}
+
+message LoginWithEmailRequest {
+    string email = 1;
+}
+
+message LoginWithEmailResponse {
+    string message = 1;
+}
+
+message VerifyOtpRequest {
+    string email = 1;
+    string otp = 2;
+}
+
+message VerifyOtpResponse {
+    string access_token = 1;
+    string refresh_token = 2;
+}
+
+message LoginWithOAuthRequest {
+    string email = 1;
+    string name = 2;
+    string profile_picture = 3;
+    string account_id = 4;
+    OAuthProvider provider = 5;
+}
+
+message LoginWithOAuthResponse {
+    string access_token = 1;
+    string refresh_token = 2;
+}
+
+enum OAuthProvider {
+    O_AUTH_PROVIDER_UNSPECIFIED = 0;
+    O_AUTH_PROVIDER_GOOGLE = 1;
+    O_AUTH_PROVIDER_GITHUB = 2;
+}
