@@ -1,3 +1,4 @@
+import { UserController } from '@/features/user/api';
 import '@fontsource-variable/space-grotesk';
 import '@fontsource-variable/work-sans';
 import appCss from '@rekode/ui/globals.css?url';
@@ -8,6 +9,14 @@ import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools';
 import { Toaster } from '@rekode/ui/components/sonner';
 
 export const Route = createRootRoute({
+  beforeLoad: async () => {
+    try {
+      const { user } = await UserController.getSelf();
+      return { user };
+    } catch {
+      return { user: null };
+    }
+  },
   head: () => ({
     meta: [
       {
@@ -40,7 +49,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       <body className="dark font-sans wrap-anywhere antialiased selection:bg-[rgba(79,184,178,0.24)]">
         {children}
         <Toaster richColors />
-        <TanStackDevtools
+        {/*<TanStackDevtools
           config={{
             position: 'bottom-right',
           }}
@@ -50,7 +59,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
               render: <TanStackRouterDevtoolsPanel />,
             },
           ]}
-        />
+        />*/}
         <Scripts />
       </body>
     </html>

@@ -6,8 +6,14 @@ import {
   LoginWithEmailResponse,
   LoginWithOAuthRequest,
   LoginWithOAuthResponse,
+  LogoutRequest,
+  LogoutResponse,
+  RefreshTokenRequest,
+  RefreshTokenResponse,
   VerifyOtpRequest,
   VerifyOtpResponse,
+  VerifyRefreshTokenRequest,
+  VerifyRefreshTokenResponse,
 } from '@rekode/types/server/proto/auth';
 import { Observable } from 'rxjs';
 
@@ -34,5 +40,26 @@ export class AuthController implements AuthServiceController {
     request: LoginWithOAuthRequest,
   ): Promise<LoginWithOAuthResponse> | Observable<LoginWithOAuthResponse> | LoginWithOAuthResponse {
     return this.authService.loginWithOAuth(request);
+  }
+
+  verifyRefreshToken(
+    request: VerifyRefreshTokenRequest,
+  ):
+    | Promise<VerifyRefreshTokenResponse>
+    | Observable<VerifyRefreshTokenResponse>
+    | VerifyRefreshTokenResponse {
+    return this.authService.verifyRefreshToken(request);
+  }
+
+  refreshToken(
+    request: RefreshTokenRequest,
+  ): Promise<RefreshTokenResponse> | Observable<RefreshTokenResponse> | RefreshTokenResponse {
+    return this.authService.refreshToken(request);
+  }
+
+  logout(
+    request: LogoutRequest,
+  ): Promise<LogoutResponse> | Observable<LogoutResponse> | LogoutResponse {
+    return this.authService.logout(request);
   }
 }

@@ -1,3 +1,5 @@
+import { getAppSession, removeAppSession, setAppSession } from '@/features/auth/lib/session';
+
 export class ApiError extends Error {
   readonly code: number;
 
@@ -15,11 +17,37 @@ export class ApiClient {
 
   constructor(private readonly resourceUrl: string) {}
 
+  private async refreshTokens() {
+    const session = await getAppSession();
+    console.log('refreshing tokens', session.refresh_token);
+
+    const cookie = `access_token=${session.access_token}; refresh_token=${session.refresh_token};`;
+
+    const res = await fetch(this.baseUrl + '/auth/refresh-token', {
+      method: 'POST',
+      headers: { Cookie: cookie },
+    });
+
+    if (!res.ok) {
+      const error = await res.json();
+      console.log('error while refreshing tokens', error.message);
+      return null;
+    }
+
+    return (await res.json()) as { accessToken: string; refreshToken: string };
+  }
+
   async fetch(url?: string, options?: RequestInit) {
+    const session = await getAppSession();
+    const cookie = `access_token=${session.access_token}; refresh_token=${session.refresh_token};`;
+
+    console.log(cookie);
+
     try {
       const res = await fetch(this.baseUrl + this.resourceUrl + url, {
+        credentials: 'include',
+        headers: { ...this.headers, ...options?.headers, Cookie: cookie },
         ...options,
-        headers: { ...this.headers, ...options?.headers },
       });
 
       if (!res.ok) {
@@ -29,9 +57,21 @@ export class ApiClient {
 
       return await res.json();
     } catch (error) {
+      console.error(JSON.stringify(error));
       if (error instanceof ApiError) {
         if (error.code === 404 && options?.method === 'GET') {
           return null;
+        }
+
+        if (error.code === 401) {
+          const tokens = await this.refreshTokens();
+          if (tokens === null) {
+            await removeAppSession();
+            return null;
+          }
+          const { accessToken, refreshToken } = tokens;
+          await setAppSession({ data: { access_token: accessToken, refresh_token: refreshToken } });
+          return this.fetch(url, options);
         }
 
         throw error;
@@ -56,7 +96,7 @@ export class ApiClient {
     });
   }
 
-  async patch(url?: string, data?: Record<string, unknown>, options?: RequestInit) {
+  async patch(url?: string, data?: unknown, options?: RequestInit) {
     return await this.fetch(url, {
       method: 'PATCH',
       body: JSON.stringify(data),

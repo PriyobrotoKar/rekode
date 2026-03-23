@@ -18,7 +18,7 @@ function Avatar({
       data-slot="avatar"
       data-size={size}
       className={cn(
-        'after:border-border group/avatar relative flex size-8 shrink-0 rounded-full select-none after:absolute after:inset-0 after:rounded-full after:border after:mix-blend-darken data-[size=lg]:size-10 data-[size=sm]:size-6 dark:after:mix-blend-lighten',
+        'after:border-border group/avatar relative flex size-8 shrink-0 rounded-sm select-none after:absolute after:inset-0 after:rounded-sm after:border after:mix-blend-darken data-[size=lg]:size-10 data-[size=sm]:size-6 dark:after:mix-blend-lighten',
         className,
       )}
       {...props}
@@ -30,7 +30,7 @@ function AvatarImage({ className, ...props }: AvatarPrimitive.Image.Props) {
   return (
     <AvatarPrimitive.Image
       data-slot="avatar-image"
-      className={cn('aspect-square size-full rounded-full object-cover', className)}
+      className={cn('aspect-square size-full rounded-sm object-cover', className)}
       {...props}
     />
   );
@@ -41,7 +41,7 @@ function AvatarFallback({ className, ...props }: AvatarPrimitive.Fallback.Props)
     <AvatarPrimitive.Fallback
       data-slot="avatar-fallback"
       className={cn(
-        'bg-muted text-muted-foreground flex size-full items-center justify-center rounded-full text-sm group-data-[size=sm]/avatar:text-xs',
+        'bg-muted text-muted-foreground flex size-full items-center justify-center rounded-sm text-sm group-data-[size=sm]/avatar:text-xs',
         className,
       )}
       {...props}

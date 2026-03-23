@@ -28,6 +28,16 @@ export interface GetUserResponse {
   user: User | null;
 }
 
+export interface UpdateUserRequest {
+  id: string;
+  name?: string | null | undefined;
+  image?: string | null | undefined;
+}
+
+export interface UpdateUserResponse {
+  user: User | null;
+}
+
 export interface User {
   id: string;
   email: string;
@@ -41,6 +51,8 @@ export interface UserServiceClient {
   createUserIfNotExists(request: CreateUserIfNotExistsRequest): Observable<CreateUserIfNotExistsResponse>;
 
   getUser(request: GetUserRequest): Observable<GetUserResponse>;
+
+  updateUser(request: UpdateUserRequest): Observable<UpdateUserResponse>;
 }
 
 export interface UserServiceController {
@@ -49,11 +61,15 @@ export interface UserServiceController {
   ): Promise<CreateUserIfNotExistsResponse> | Observable<CreateUserIfNotExistsResponse> | CreateUserIfNotExistsResponse;
 
   getUser(request: GetUserRequest): Promise<GetUserResponse> | Observable<GetUserResponse> | GetUserResponse;
+
+  updateUser(
+    request: UpdateUserRequest,
+  ): Promise<UpdateUserResponse> | Observable<UpdateUserResponse> | UpdateUserResponse;
 }
 
 export function UserServiceControllerMethods() {
   return function (constructor: Function) {
-    const grpcMethods: string[] = ["createUserIfNotExists", "getUser"];
+    const grpcMethods: string[] = ["createUserIfNotExists", "getUser", "updateUser"];
     for (const method of grpcMethods) {
       const descriptor: any = Reflect.getOwnPropertyDescriptor(constructor.prototype, method);
       GrpcMethod("UserService", method)(constructor.prototype[method], method, descriptor);

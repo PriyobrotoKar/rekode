@@ -4,6 +4,8 @@ import {
   CreateUserIfNotExistsResponse,
   GetUserRequest,
   GetUserResponse,
+  UpdateUserRequest,
+  UpdateUserResponse,
   UserServiceController,
   UserServiceControllerMethods,
 } from '@rekode/types/server/proto/user';
@@ -29,5 +31,11 @@ export class UserController implements UserServiceController {
     request: GetUserRequest,
   ): Promise<GetUserResponse> | Observable<GetUserResponse> | GetUserResponse {
     return this.userService.getUser(request.id);
+  }
+
+  updateUser(
+    request: UpdateUserRequest,
+  ): Promise<UpdateUserResponse> | Observable<UpdateUserResponse> | UpdateUserResponse {
+    return this.userService.updateUser(request);
   }
 }

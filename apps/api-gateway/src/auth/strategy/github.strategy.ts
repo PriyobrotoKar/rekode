@@ -1,41 +1,41 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
-import { Profile, Strategy } from 'passport-google-oauth20';
+import { Profile, Strategy } from 'passport-github2';
 
 import { OAuthUser } from '../types/oauth-user';
 
-export const GoogleOAuthStrategyName = 'google';
+export const GithubOAuthStrategyName = 'github';
 
 @Injectable()
-export class GoogleOAuthStrategy extends PassportStrategy(Strategy, GoogleOAuthStrategyName) {
+export class GithubOAuthStrategy extends PassportStrategy(Strategy, GithubOAuthStrategyName) {
   constructor(readonly config: ConfigService) {
-    const clientID = config.getOrThrow<string>('GOOGLE_OAUTH_CLIENT_ID');
-    const clientSecret = config.getOrThrow<string>('GOOGLE_OAUTH_CLIENT_SECRET');
-    const callbackURL = config.getOrThrow<string>('GOOGLE_OAUTH_CALLBACK_URL');
+    const clientID = config.getOrThrow<string>('GITHUB_OAUTH_CLIENT_ID');
+    const clientSecret = config.getOrThrow<string>('GITHUB_OAUTH_CLIENT_SECRET');
+    const callbackURL = config.getOrThrow<string>('GITHUB_OAUTH_CALLBACK_URL');
 
     super({
       clientID,
       clientSecret,
       callbackURL,
-      scope: ['email', 'profile'],
+      scope: ['user:email', 'read:user'],
     });
   }
 
   validate(_: string, __: string, profile: Profile): OAuthUser {
-    const { name, emails, photos } = profile;
+    const { displayName, emails, photos } = profile;
 
     const email = emails?.[0]?.value;
     const profilePicture = photos?.[0]?.value;
 
-    if (!email || !name || !profilePicture) {
+    if (!email || !displayName || !profilePicture) {
       throw new Error('Invalid Google profile');
     }
 
     const user = {
       email,
-      firstName: name.givenName,
-      lastName: name.familyName,
+      firstName: displayName.split(' ')[0]!,
+      lastName: displayName.split(' ')[1]!,
       picture: profilePicture,
       accountId: profile.id,
     };

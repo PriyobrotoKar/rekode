@@ -78,7 +78,12 @@ export function SignInForm() {
           )}
         />
 
-        <Button isLoading={mutation.isPending} disabled={search.success} type="submit">
+        <Button
+          className={'relative'}
+          isLoading={mutation.isPending}
+          disabled={search.success || mutation.isPending}
+          type="submit"
+        >
           Continue
           {prevSession.provider === OAuthProvider.UNRECOGNIZED && <LastUsedBadge />}
         </Button>
@@ -105,17 +110,29 @@ export function SignInForm() {
           href="http://localhost:8000/auth/google"
         >
           {search.provider === OAuthProvider.O_AUTH_PROVIDER_GOOGLE ? (
-            <IconLoader2 className="animate-spin" />
+            <IconLoader2 data-icon="inline-start" className="animate-spin" />
           ) : (
-            <IconBrandGoogleFilled />
+            <IconBrandGoogleFilled data-icon="inline-start" />
           )}
           Continue with Google
           {prevSession.provider === OAuthProvider.O_AUTH_PROVIDER_GOOGLE && <LastUsedBadge />}
         </a>
-        <Button disabled={search.success} variant="secondary">
-          <IconBrandGithub />
+        <a
+          className={cn(
+            'relative',
+            buttonVariants({ variant: 'secondary' }),
+            search.success && 'pointer-events-none opacity-50',
+          )}
+          href="http://localhost:8000/auth/github"
+        >
+          {search.provider === OAuthProvider.O_AUTH_PROVIDER_GOOGLE ? (
+            <IconLoader2 data-icon="inline-start" className="animate-spin" />
+          ) : (
+            <IconBrandGithub data-icon="inline-start" />
+          )}
           Continue with Github
-        </Button>
+          {prevSession.provider === OAuthProvider.O_AUTH_PROVIDER_GITHUB && <LastUsedBadge />}
+        </a>
       </div>
 
       {/* Terms */}

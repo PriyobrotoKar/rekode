@@ -13,8 +13,6 @@ import refreshJwtConfig from './config/refresh-jwt.config';
 import { RedisConfigService } from './lib/redis.service';
 import { PrismaModule } from './prisma/prisma.module';
 import { PrismaService } from './prisma/prisma.service';
-import { JwtStrategy } from './strategy/jwt.strategy';
-import { RefreshJwtStrategy } from './strategy/refresh-jwt.strategy';
 
 @Module({
   imports: [
@@ -50,6 +48,6 @@ import { RefreshJwtStrategy } from './strategy/refresh-jwt.strategy';
     ]),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, RefreshJwtStrategy, PrismaService],
+  providers: [AuthService, PrismaService],
 })
 export class AuthModule {}

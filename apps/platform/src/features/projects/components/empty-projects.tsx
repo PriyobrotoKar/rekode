@@ -27,11 +27,11 @@ export function EmptyProjects() {
       </EmptyHeader>
       <EmptyContent className="flex flex-row items-center gap-3">
         <Button variant="secondary" size="sm">
-          <IconBrandGithub className="size-4" />
+          <IconBrandGithub data-icon="inline-start" />
           Import from GitHub
         </Button>
         <Button variant="default" size="sm">
-          <IconPlayerPlay className="size-4" />
+          <IconPlayerPlay data-icon="inline-start" />
           Start with template
         </Button>
       </EmptyContent>

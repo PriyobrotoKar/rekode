@@ -79,6 +79,34 @@ export interface LoginWithOAuthResponse {
   refreshToken: string;
 }
 
+export interface VerifyRefreshTokenRequest {
+  oldRefreshToken: string;
+  id: string;
+}
+
+export interface VerifyRefreshTokenResponse {
+  id: string;
+  email: string;
+}
+
+export interface RefreshTokenRequest {
+  id: string;
+  email: string;
+}
+
+export interface RefreshTokenResponse {
+  accessToken: string;
+  refreshToken: string;
+}
+
+export interface LogoutRequest {
+  id: string;
+}
+
+export interface LogoutResponse {
+  message: string;
+}
+
 function createBaseLoginWithEmailRequest(): LoginWithEmailRequest {
   return { email: "" };
 }
@@ -567,6 +595,438 @@ export const LoginWithOAuthResponse: MessageFns<LoginWithOAuthResponse> = {
     const message = createBaseLoginWithOAuthResponse();
     message.accessToken = object.accessToken ?? "";
     message.refreshToken = object.refreshToken ?? "";
+    return message;
+  },
+};
+
+function createBaseVerifyRefreshTokenRequest(): VerifyRefreshTokenRequest {
+  return { oldRefreshToken: "", id: "" };
+}
+
+export const VerifyRefreshTokenRequest: MessageFns<VerifyRefreshTokenRequest> = {
+  encode(message: VerifyRefreshTokenRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.oldRefreshToken !== "") {
+      writer.uint32(10).string(message.oldRefreshToken);
+    }
+    if (message.id !== "") {
+      writer.uint32(18).string(message.id);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): VerifyRefreshTokenRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseVerifyRefreshTokenRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.oldRefreshToken = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.id = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): VerifyRefreshTokenRequest {
+    return {
+      oldRefreshToken: isSet(object.oldRefreshToken)
+        ? globalThis.String(object.oldRefreshToken)
+        : isSet(object.old_refresh_token)
+        ? globalThis.String(object.old_refresh_token)
+        : "",
+      id: isSet(object.id) ? globalThis.String(object.id) : "",
+    };
+  },
+
+  toJSON(message: VerifyRefreshTokenRequest): unknown {
+    const obj: any = {};
+    if (message.oldRefreshToken !== "") {
+      obj.oldRefreshToken = message.oldRefreshToken;
+    }
+    if (message.id !== "") {
+      obj.id = message.id;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<VerifyRefreshTokenRequest>, I>>(base?: I): VerifyRefreshTokenRequest {
+    return VerifyRefreshTokenRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<VerifyRefreshTokenRequest>, I>>(object: I): VerifyRefreshTokenRequest {
+    const message = createBaseVerifyRefreshTokenRequest();
+    message.oldRefreshToken = object.oldRefreshToken ?? "";
+    message.id = object.id ?? "";
+    return message;
+  },
+};
+
+function createBaseVerifyRefreshTokenResponse(): VerifyRefreshTokenResponse {
+  return { id: "", email: "" };
+}
+
+export const VerifyRefreshTokenResponse: MessageFns<VerifyRefreshTokenResponse> = {
+  encode(message: VerifyRefreshTokenResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.id !== "") {
+      writer.uint32(10).string(message.id);
+    }
+    if (message.email !== "") {
+      writer.uint32(18).string(message.email);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): VerifyRefreshTokenResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseVerifyRefreshTokenResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.id = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.email = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): VerifyRefreshTokenResponse {
+    return {
+      id: isSet(object.id) ? globalThis.String(object.id) : "",
+      email: isSet(object.email) ? globalThis.String(object.email) : "",
+    };
+  },
+
+  toJSON(message: VerifyRefreshTokenResponse): unknown {
+    const obj: any = {};
+    if (message.id !== "") {
+      obj.id = message.id;
+    }
+    if (message.email !== "") {
+      obj.email = message.email;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<VerifyRefreshTokenResponse>, I>>(base?: I): VerifyRefreshTokenResponse {
+    return VerifyRefreshTokenResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<VerifyRefreshTokenResponse>, I>>(object: I): VerifyRefreshTokenResponse {
+    const message = createBaseVerifyRefreshTokenResponse();
+    message.id = object.id ?? "";
+    message.email = object.email ?? "";
+    return message;
+  },
+};
+
+function createBaseRefreshTokenRequest(): RefreshTokenRequest {
+  return { id: "", email: "" };
+}
+
+export const RefreshTokenRequest: MessageFns<RefreshTokenRequest> = {
+  encode(message: RefreshTokenRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.id !== "") {
+      writer.uint32(10).string(message.id);
+    }
+    if (message.email !== "") {
+      writer.uint32(18).string(message.email);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): RefreshTokenRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseRefreshTokenRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.id = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.email = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): RefreshTokenRequest {
+    return {
+      id: isSet(object.id) ? globalThis.String(object.id) : "",
+      email: isSet(object.email) ? globalThis.String(object.email) : "",
+    };
+  },
+
+  toJSON(message: RefreshTokenRequest): unknown {
+    const obj: any = {};
+    if (message.id !== "") {
+      obj.id = message.id;
+    }
+    if (message.email !== "") {
+      obj.email = message.email;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<RefreshTokenRequest>, I>>(base?: I): RefreshTokenRequest {
+    return RefreshTokenRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<RefreshTokenRequest>, I>>(object: I): RefreshTokenRequest {
+    const message = createBaseRefreshTokenRequest();
+    message.id = object.id ?? "";
+    message.email = object.email ?? "";
+    return message;
+  },
+};
+
+function createBaseRefreshTokenResponse(): RefreshTokenResponse {
+  return { accessToken: "", refreshToken: "" };
+}
+
+export const RefreshTokenResponse: MessageFns<RefreshTokenResponse> = {
+  encode(message: RefreshTokenResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.accessToken !== "") {
+      writer.uint32(10).string(message.accessToken);
+    }
+    if (message.refreshToken !== "") {
+      writer.uint32(18).string(message.refreshToken);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): RefreshTokenResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseRefreshTokenResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.accessToken = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.refreshToken = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): RefreshTokenResponse {
+    return {
+      accessToken: isSet(object.accessToken)
+        ? globalThis.String(object.accessToken)
+        : isSet(object.access_token)
+        ? globalThis.String(object.access_token)
+        : "",
+      refreshToken: isSet(object.refreshToken)
+        ? globalThis.String(object.refreshToken)
+        : isSet(object.refresh_token)
+        ? globalThis.String(object.refresh_token)
+        : "",
+    };
+  },
+
+  toJSON(message: RefreshTokenResponse): unknown {
+    const obj: any = {};
+    if (message.accessToken !== "") {
+      obj.accessToken = message.accessToken;
+    }
+    if (message.refreshToken !== "") {
+      obj.refreshToken = message.refreshToken;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<RefreshTokenResponse>, I>>(base?: I): RefreshTokenResponse {
+    return RefreshTokenResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<RefreshTokenResponse>, I>>(object: I): RefreshTokenResponse {
+    const message = createBaseRefreshTokenResponse();
+    message.accessToken = object.accessToken ?? "";
+    message.refreshToken = object.refreshToken ?? "";
+    return message;
+  },
+};
+
+function createBaseLogoutRequest(): LogoutRequest {
+  return { id: "" };
+}
+
+export const LogoutRequest: MessageFns<LogoutRequest> = {
+  encode(message: LogoutRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.id !== "") {
+      writer.uint32(10).string(message.id);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): LogoutRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseLogoutRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.id = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): LogoutRequest {
+    return { id: isSet(object.id) ? globalThis.String(object.id) : "" };
+  },
+
+  toJSON(message: LogoutRequest): unknown {
+    const obj: any = {};
+    if (message.id !== "") {
+      obj.id = message.id;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<LogoutRequest>, I>>(base?: I): LogoutRequest {
+    return LogoutRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<LogoutRequest>, I>>(object: I): LogoutRequest {
+    const message = createBaseLogoutRequest();
+    message.id = object.id ?? "";
+    return message;
+  },
+};
+
+function createBaseLogoutResponse(): LogoutResponse {
+  return { message: "" };
+}
+
+export const LogoutResponse: MessageFns<LogoutResponse> = {
+  encode(message: LogoutResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.message !== "") {
+      writer.uint32(10).string(message.message);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): LogoutResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseLogoutResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.message = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): LogoutResponse {
+    return { message: isSet(object.message) ? globalThis.String(object.message) : "" };
+  },
+
+  toJSON(message: LogoutResponse): unknown {
+    const obj: any = {};
+    if (message.message !== "") {
+      obj.message = message.message;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<LogoutResponse>, I>>(base?: I): LogoutResponse {
+    return LogoutResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<LogoutResponse>, I>>(object: I): LogoutResponse {
+    const message = createBaseLogoutResponse();
+    message.message = object.message ?? "";
     return message;
   },
 };

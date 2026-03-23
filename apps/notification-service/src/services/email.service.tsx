@@ -26,7 +26,8 @@ export class EmailService implements OnModuleInit {
   }
 
   async sendVerifyOtpMail(email: string, otp: string) {
-    console.log({ email, otp });
+    this.logger.log(`Sending verify OTP email to ${email}`);
+
     const body = await render(<VerifyOtpEmail otp={otp} />);
 
     await this.sendMail({
@@ -37,6 +38,8 @@ export class EmailService implements OnModuleInit {
   }
 
   async sendWelcomeMail(email: string) {
+    this.logger.log(`Sending welcome email to ${email}`);
+
     const body = await render(<WelcomeEmail />);
 
     await this.sendMail({
@@ -55,7 +58,12 @@ export class EmailService implements OnModuleInit {
     subject: string;
     body: string;
   }) {
-    this.logger.log(`Sending email to ${email}`);
+    const isProd = this.configService.get('APP_ENV') === 'production';
+
+    if (!isProd) {
+      this.logger.debug(`Skipping sending email to ${email} in non-production environment`);
+      return;
+    }
 
     try {
       await this.transporter.sendMail({

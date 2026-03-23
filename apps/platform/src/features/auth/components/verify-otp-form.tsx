@@ -1,8 +1,9 @@
 import { Controller, useForm } from 'react-hook-form';
 
 import { zodResolver } from '@hookform/resolvers/zod';
+import { OAuthProvider } from '@rekode/types/client/proto/auth';
 import { useMutation } from '@tanstack/react-query';
-import { Link, useNavigate } from '@tanstack/react-router';
+import { Link, useNavigate, useRouter } from '@tanstack/react-router';
 
 import { Button } from '@rekode/ui/components/button';
 import { Field, FieldError } from '@rekode/ui/components/field';
@@ -13,6 +14,7 @@ import {
   InputOTPSlot,
 } from '@rekode/ui/components/input-otp';
 
+import { setAppSession } from '../lib/session';
 import { verifyOtpMutationOptions } from '../queries';
 import { type VerifyOtpSchema, verifyOtpSchema } from '../schema/verify-otp';
 import { FormHeader } from './form-header';
@@ -22,7 +24,7 @@ interface VerifyOtpFormProps {
 }
 
 export function VerifyOtpForm({ email }: VerifyOtpFormProps) {
-  const navigate = useNavigate();
+  const router = useRouter();
   const form = useForm<VerifyOtpSchema>({
     resolver: zodResolver(verifyOtpSchema),
     defaultValues: {
@@ -32,10 +34,15 @@ export function VerifyOtpForm({ email }: VerifyOtpFormProps) {
 
   const mutation = useMutation({
     ...verifyOtpMutationOptions,
-    onSuccess: () => {
-      navigate({
-        to: '/auth/profile',
+    onSuccess: async (data) => {
+      await setAppSession({
+        data: {
+          access_token: data.accessToken,
+          refresh_token: data.refreshToken,
+          provider: OAuthProvider.UNRECOGNIZED,
+        },
       });
+      router.invalidate();
     },
   });
 

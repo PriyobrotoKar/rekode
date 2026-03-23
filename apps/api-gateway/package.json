@@ -14,16 +14,18 @@
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix"
   },
   "dependencies": {
+    "@fastify/cookie": "^11.0.2",
     "@nestjs/common": "catalog:nestjs",
-    "@nestjs/core": "catalog:nestjs",
     "@nestjs/config": "catalog:nestjs",
+    "@nestjs/core": "catalog:nestjs",
     "@nestjs/mapped-types": "*",
     "@nestjs/microservices": "catalog:nestjs",
+    "@nestjs/passport": "catalog:nestjs",
     "@nestjs/platform-fastify": "^11.1.14",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.15.1",
+    "passport-github2": "^0.1.12",
     "passport-google-oauth20": "^2.0.0",
-    "@nestjs/passport": "catalog:nestjs",
     "reflect-metadata": "^0.2.2",
     "rxjs": "catalog:nestjs"
   },
@@ -35,6 +37,7 @@
     "@rekode/typescript-config": "workspace:*",
     "@types/node": "catalog:",
     "@types/passport-google-oauth20": "^2.0.17",
+    "@types/passport-github2": "^1.2.9",
     "jest": "^30.0.0",
     "nodemon": "^3.1.14",
     "source-map-support": "^0.5.21",

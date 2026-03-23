@@ -20,8 +20,6 @@ interface VerifyOtpEmailProps {
 }
 
 export const VerifyOtpEmail = ({ otp, expiryMinutes = 1 }: VerifyOtpEmailProps) => {
-  const formattedOtp = otp.split('').join(' ');
-
   return (
     <Html>
       <Head />
@@ -43,9 +41,7 @@ export const VerifyOtpEmail = ({ otp, expiryMinutes = 1 }: VerifyOtpEmailProps) 
 
               {/* OTP Code Box */}
               <Section className="bg-muted mb-7 py-11 text-center">
-                <Text className="font-display m-0 text-xl font-bold tracking-normal text-black">
-                  {formattedOtp}
-                </Text>
+                <Text className="m-0 font-mono text-xl tracking-[0.2em] text-black">{otp}</Text>
               </Section>
 
               <Text className="m-0 mb-7 text-sm">

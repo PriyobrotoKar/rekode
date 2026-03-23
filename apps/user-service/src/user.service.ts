@@ -1,6 +1,7 @@
+import { status } from '@grpc/grpc-js';
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import { ClientKafka } from '@nestjs/microservices';
-import { CreateUserIfNotExistsRequest } from '@rekode/types/server/proto/user';
+import { ClientKafka, RpcException } from '@nestjs/microservices';
+import { CreateUserIfNotExistsRequest, UpdateUserRequest } from '@rekode/types/server/proto/user';
 
 import { PrismaService } from './prisma/prisma.service';
 
@@ -56,14 +57,48 @@ export class UserService {
     };
   }
 
-  getUser(id: string) {
-    return {
-      user: {
+  async getUser(id: string) {
+    this.logger.log(`Requested to get user with id: ${id}`);
+
+    const user = await this.prisma.user.findUnique({
+      where: {
         id,
-        email: 'xyz@gmail.com',
-        name: 'xyz',
-        image: 'https://something.cdn.com/xyz',
       },
+    });
+
+    if (!user) {
+      this.logger.log(`User with id: ${id} not found`);
+      throw new RpcException({
+        code: status.NOT_FOUND,
+        message: `User not found`,
+      });
+    }
+
+    this.logger.log(`User with id: ${id} found`);
+
+    return {
+      user,
+    };
+  }
+
+  async updateUser({ id, name, image }: UpdateUserRequest) {
+    this.logger.log(`Requested to update user with id: ${id}`);
+    this.logger.debug({ name, image });
+
+    const { user } = await this.getUser(id);
+
+    const updatedUser = await this.prisma.user.update({
+      where: {
+        id: user.id,
+      },
+      data: {
+        name,
+        image,
+      },
+    });
+
+    return {
+      user: updatedUser,
     };
   }
 }

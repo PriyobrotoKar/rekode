@@ -1,5 +1,12 @@
 import { status as GrpcStatus } from '@grpc/grpc-js';
-import { ArgumentsHost, Catch, ExceptionFilter, HttpStatus, Logger } from '@nestjs/common';
+import {
+  ArgumentsHost,
+  Catch,
+  ExceptionFilter,
+  HttpException,
+  HttpStatus,
+  Logger,
+} from '@nestjs/common';
 import { RpcException } from '@nestjs/microservices';
 import { FastifyReply } from 'fastify';
 
@@ -34,7 +41,10 @@ export class IIRpcExceptionFilter implements ExceptionFilter {
 
     this.logger.error(exception);
 
-    if (exception instanceof RpcException) {
+    if (exception instanceof HttpException) {
+      status = exception.getStatus();
+      message = exception.message;
+    } else if (exception instanceof RpcException) {
       const error = exception.getError();
 
       if (typeof error === 'object' && error !== null && 'status' in error) {

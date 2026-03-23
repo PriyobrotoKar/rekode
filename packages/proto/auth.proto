@@ -6,6 +6,9 @@ service AuthService {
   rpc LoginWithEmail (LoginWithEmailRequest) returns (LoginWithEmailResponse) {}
   rpc VerifyOtp (VerifyOtpRequest) returns (VerifyOtpResponse) {}
   rpc LoginWithOAuth (LoginWithOAuthRequest) returns (LoginWithOAuthResponse) {}
+  rpc VerifyRefreshToken (VerifyRefreshTokenRequest) returns (VerifyRefreshTokenResponse) {}
+  rpc RefreshToken (RefreshTokenRequest) returns (RefreshTokenResponse) {}
+  rpc Logout (LogoutRequest) returns (LogoutResponse) {}
 }
 
 message LoginWithEmailRequest {
@@ -43,4 +46,32 @@ enum OAuthProvider {
     O_AUTH_PROVIDER_UNSPECIFIED = 0;
     O_AUTH_PROVIDER_GOOGLE = 1;
     O_AUTH_PROVIDER_GITHUB = 2;
+}
+
+message VerifyRefreshTokenRequest {
+    string old_refresh_token = 1;
+    string id = 2;
+}
+
+message VerifyRefreshTokenResponse {
+    string id = 1;
+    string email = 2;
+}
+
+message RefreshTokenRequest {
+    string id = 1;
+    string email = 2;
+}
+
+message RefreshTokenResponse {
+    string access_token = 1;
+    string refresh_token = 2;
+}
+
+message LogoutRequest {
+    string id = 1;
+}
+
+message LogoutResponse {
+    string message = 1;
 }

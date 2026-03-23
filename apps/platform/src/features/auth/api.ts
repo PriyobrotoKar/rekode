@@ -1,8 +1,9 @@
 import type {
   LoginWithEmailResponse,
+  LogoutResponse,
   VerifyOtpRequest,
   VerifyOtpResponse,
-} from '@rekode/types/proto/auth';
+} from '@rekode/types/client/proto/auth';
 
 import { ApiClient } from '@/lib/api-client';
 
@@ -15,5 +16,13 @@ export class AuthController {
 
   static async verifyOtp(data: VerifyOtpRequest): Promise<VerifyOtpResponse> {
     return this.apiClient.post('/verify-otp', data);
+  }
+
+  static async logout(): Promise<LogoutResponse> {
+    return this.apiClient.post('/logout', undefined, {
+      headers: {
+        'Content-Type': 'text/plain',
+      },
+    });
   }
 }

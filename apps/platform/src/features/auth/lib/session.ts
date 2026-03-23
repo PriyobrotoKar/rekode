@@ -12,7 +12,7 @@ type PreviousSessionData = {
   provider: OAuthProvider;
 };
 
-export function usePreviousAppSession(): ReturnType<typeof useSession<PreviousSessionData>> {
+function usePreviousAppSession(): ReturnType<typeof useSession<PreviousSessionData>> {
   return useSession<PreviousSessionData>({
     name: 'prev-session',
     password: process.env.SESSION_SECRET!,
@@ -42,21 +42,36 @@ function useAppSession(): ReturnType<typeof useSession<SessionData>> {
 
 export const setAppSession = createServerFn({ method: 'POST' })
   .inputValidator(
-    (data: { access_token: string; refresh_token: string; provider: OAuthProvider }) => data,
+    (data: { access_token: string; refresh_token: string; provider?: OAuthProvider }) => data,
   )
   .handler(async ({ data }) => {
+    console.log('Setting session', data);
     const session = await useAppSession();
     const prevSession = await usePreviousAppSession();
+
     await session.update({
       access_token: data.access_token,
       refresh_token: data.refresh_token,
     });
-    await prevSession.update({
-      provider: data.provider,
-    });
+
+    if (data.provider) {
+      await prevSession.update({
+        provider: data.provider,
+      });
+    }
   });
+
+export const removeAppSession = createServerFn({ method: 'POST' }).handler(async () => {
+  const session = await useAppSession();
+  await session.clear();
+});
 
 export const getAppSession = createServerFn({ method: 'GET' }).handler(async () => {
   const session = await useAppSession();
+  return session.data;
+});
+
+export const getPreviousAppSession = createServerFn({ method: 'GET' }).handler(async () => {
+  const session = await usePreviousAppSession();
   return session.data;
 });

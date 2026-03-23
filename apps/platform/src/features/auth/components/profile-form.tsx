@@ -1,7 +1,10 @@
 import { Controller, useForm } from 'react-hook-form';
 
+import { updateProfileMutationOptions } from '@/features/user/queries';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Link } from '@tanstack/react-router';
+import type { User } from '@rekode/types/client/proto/user';
+import { useMutation } from '@tanstack/react-query';
+import { Link, useNavigate } from '@tanstack/react-router';
 
 import { Button } from '@rekode/ui/components/button';
 import { Field, FieldError, FieldLabel } from '@rekode/ui/components/field';
@@ -10,16 +13,33 @@ import { Input } from '@rekode/ui/components/input';
 import { type ProfileSchema, profileSchema } from '../schema/profile';
 import { FormHeader } from './form-header';
 
-export function ProfileForm() {
+interface ProfileFormProps {
+  user: User;
+}
+
+export function ProfileForm({ user }: ProfileFormProps) {
+  const navigate = useNavigate({
+    from: '/auth/profile/',
+  });
+
   const form = useForm<ProfileSchema>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
-      name: '',
+      name: user.name ?? '',
+    },
+  });
+
+  const updateProfileMutation = useMutation({
+    ...updateProfileMutationOptions,
+    onSuccess: () => {
+      navigate({ to: '/' });
     },
   });
 
   const onSubmit = form.handleSubmit((data) => {
-    console.log(data);
+    updateProfileMutation.mutate({
+      name: data.name,
+    });
   });
 
   return (

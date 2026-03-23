@@ -1,4 +1,4 @@
-export interface GoogleUser {
+export interface OAuthUser {
   email: string;
   firstName: string;
   lastName: string;

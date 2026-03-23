@@ -6,8 +6,11 @@ import { JwtService } from '@nestjs/jwt';
 import { type ClientGrpc, ClientKafka, RpcException } from '@nestjs/microservices';
 import {
   LoginWithOAuthRequest,
+  LogoutRequest,
   OAuthProvider,
+  RefreshTokenRequest,
   VerifyOtpRequest,
+  VerifyRefreshTokenRequest,
 } from '@rekode/types/server/proto/auth';
 import {
   USER_PACKAGE_NAME,
@@ -224,6 +227,61 @@ export class AuthService implements OnModuleInit {
     this.logger.debug(`OTP ${code} has been generated for email ${email}`);
 
     return code;
+  }
+
+  async verifyRefreshToken({ oldRefreshToken, id }: VerifyRefreshTokenRequest) {
+    this.logger.log(`Validating refresh token for user ${id}`);
+
+    const { user } = await firstValueFrom(this.userService.getUser({ id }));
+
+    if (!user) {
+      this.logger.error(`User not found for id ${id}`);
+      throw new RpcException({
+        code: status.UNAUTHENTICATED,
+        message: 'User not found',
+      });
+    }
+
+    const hashedRefreshToken = await this.cacheManager.get<string>(`REFRESH_TOKEN:${user.id}`);
+
+    if (!hashedRefreshToken) {
+      this.logger.error(`Refresh token not found for user ${id}`);
+      throw new RpcException({
+        code: status.UNAUTHENTICATED,
+        message: 'Refresh token not found',
+      });
+    }
+
+    const isRefreshTokenValid = await argon2.verify(hashedRefreshToken, oldRefreshToken);
+
+    if (!isRefreshTokenValid) {
+      this.logger.error(`Invalid refresh token for user ${id}`);
+      throw new RpcException({
+        code: status.UNAUTHENTICATED,
+        message: 'Invalid refresh token',
+      });
+    }
+
+    return {
+      id: user.id,
+      email: user.email,
+    };
+  }
+
+  async refreshToken({ id, email }: RefreshTokenRequest) {
+    this.logger.log(`User ${id} requested to refresh token`);
+
+    const [accessToken, refreshToken] = await this.generateTokens({ id, email });
+
+    await this.updateRefreshToken(id, refreshToken);
+
+    return { accessToken, refreshToken };
+  }
+
+  async logout({ id }: LogoutRequest) {
+    this.logger.log(`User ${id} requested to logout`);
+    await this.cacheManager.del(`REFRESH_TOKEN:${id}`);
+    return { message: 'Logged out successfully' };
   }
 
   private async generateTokens(payload: JWTPayload) {

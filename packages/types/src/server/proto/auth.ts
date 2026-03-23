@@ -48,6 +48,34 @@ export interface LoginWithOAuthResponse {
   refreshToken: string;
 }
 
+export interface VerifyRefreshTokenRequest {
+  oldRefreshToken: string;
+  id: string;
+}
+
+export interface VerifyRefreshTokenResponse {
+  id: string;
+  email: string;
+}
+
+export interface RefreshTokenRequest {
+  id: string;
+  email: string;
+}
+
+export interface RefreshTokenResponse {
+  accessToken: string;
+  refreshToken: string;
+}
+
+export interface LogoutRequest {
+  id: string;
+}
+
+export interface LogoutResponse {
+  message: string;
+}
+
 export const AUTH_PACKAGE_NAME = "auth";
 
 export interface AuthServiceClient {
@@ -56,6 +84,12 @@ export interface AuthServiceClient {
   verifyOtp(request: VerifyOtpRequest): Observable<VerifyOtpResponse>;
 
   loginWithOAuth(request: LoginWithOAuthRequest): Observable<LoginWithOAuthResponse>;
+
+  verifyRefreshToken(request: VerifyRefreshTokenRequest): Observable<VerifyRefreshTokenResponse>;
+
+  refreshToken(request: RefreshTokenRequest): Observable<RefreshTokenResponse>;
+
+  logout(request: LogoutRequest): Observable<LogoutResponse>;
 }
 
 export interface AuthServiceController {
@@ -68,11 +102,28 @@ export interface AuthServiceController {
   loginWithOAuth(
     request: LoginWithOAuthRequest,
   ): Promise<LoginWithOAuthResponse> | Observable<LoginWithOAuthResponse> | LoginWithOAuthResponse;
+
+  verifyRefreshToken(
+    request: VerifyRefreshTokenRequest,
+  ): Promise<VerifyRefreshTokenResponse> | Observable<VerifyRefreshTokenResponse> | VerifyRefreshTokenResponse;
+
+  refreshToken(
+    request: RefreshTokenRequest,
+  ): Promise<RefreshTokenResponse> | Observable<RefreshTokenResponse> | RefreshTokenResponse;
+
+  logout(request: LogoutRequest): Promise<LogoutResponse> | Observable<LogoutResponse> | LogoutResponse;
 }
 
 export function AuthServiceControllerMethods() {
   return function (constructor: Function) {
-    const grpcMethods: string[] = ["loginWithEmail", "verifyOtp", "loginWithOAuth"];
+    const grpcMethods: string[] = [
+      "loginWithEmail",
+      "verifyOtp",
+      "loginWithOAuth",
+      "verifyRefreshToken",
+      "refreshToken",
+      "logout",
+    ];
     for (const method of grpcMethods) {
       const descriptor: any = Reflect.getOwnPropertyDescriptor(constructor.prototype, method);
       GrpcMethod("AuthService", method)(constructor.prototype[method], method, descriptor);

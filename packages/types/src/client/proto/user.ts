@@ -27,6 +27,16 @@ export interface GetUserResponse {
   user: User | null;
 }
 
+export interface UpdateUserRequest {
+  id: string;
+  name?: string | null | undefined;
+  image?: string | null | undefined;
+}
+
+export interface UpdateUserResponse {
+  user: User | null;
+}
+
 export interface User {
   id: string;
   email: string;
@@ -297,6 +307,156 @@ export const GetUserResponse: MessageFns<GetUserResponse> = {
   },
   fromPartial<I extends Exact<DeepPartial<GetUserResponse>, I>>(object: I): GetUserResponse {
     const message = createBaseGetUserResponse();
+    message.user = (object.user !== undefined && object.user !== null) ? User.fromPartial(object.user) : null;
+    return message;
+  },
+};
+
+function createBaseUpdateUserRequest(): UpdateUserRequest {
+  return { id: "", name: null, image: null };
+}
+
+export const UpdateUserRequest: MessageFns<UpdateUserRequest> = {
+  encode(message: UpdateUserRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.id !== "") {
+      writer.uint32(10).string(message.id);
+    }
+    if (message.name !== undefined && message.name !== null) {
+      writer.uint32(18).string(message.name);
+    }
+    if (message.image !== undefined && message.image !== null) {
+      writer.uint32(26).string(message.image);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): UpdateUserRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseUpdateUserRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.id = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.name = reader.string();
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.image = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): UpdateUserRequest {
+    return {
+      id: isSet(object.id) ? globalThis.String(object.id) : "",
+      name: isSet(object.name) ? globalThis.String(object.name) : null,
+      image: isSet(object.image) ? globalThis.String(object.image) : null,
+    };
+  },
+
+  toJSON(message: UpdateUserRequest): unknown {
+    const obj: any = {};
+    if (message.id !== "") {
+      obj.id = message.id;
+    }
+    if (message.name !== undefined && message.name !== null) {
+      obj.name = message.name;
+    }
+    if (message.image !== undefined && message.image !== null) {
+      obj.image = message.image;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<UpdateUserRequest>, I>>(base?: I): UpdateUserRequest {
+    return UpdateUserRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<UpdateUserRequest>, I>>(object: I): UpdateUserRequest {
+    const message = createBaseUpdateUserRequest();
+    message.id = object.id ?? "";
+    message.name = object.name ?? undefined;
+    message.image = object.image ?? undefined;
+    return message;
+  },
+};
+
+function createBaseUpdateUserResponse(): UpdateUserResponse {
+  return { user: null };
+}
+
+export const UpdateUserResponse: MessageFns<UpdateUserResponse> = {
+  encode(message: UpdateUserResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.user !== undefined && message.user !== null) {
+      User.encode(message.user, writer.uint32(10).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): UpdateUserResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseUpdateUserResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.user = User.decode(reader, reader.uint32());
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): UpdateUserResponse {
+    return { user: isSet(object.user) ? User.fromJSON(object.user) : null };
+  },
+
+  toJSON(message: UpdateUserResponse): unknown {
+    const obj: any = {};
+    if (message.user !== undefined && message.user !== null) {
+      obj.user = User.toJSON(message.user);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<UpdateUserResponse>, I>>(base?: I): UpdateUserResponse {
+    return UpdateUserResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<UpdateUserResponse>, I>>(object: I): UpdateUserResponse {
+    const message = createBaseUpdateUserResponse();
     message.user = (object.user !== undefined && object.user !== null) ? User.fromPartial(object.user) : null;
     return message;
   },

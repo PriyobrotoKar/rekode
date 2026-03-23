@@ -1,5 +1,5 @@
 import { SignInForm } from '@/features/auth/components/sign-in-form';
-import { setAppSession, usePreviousAppSession } from '@/features/auth/lib/session';
+import { getPreviousAppSession, setAppSession } from '@/features/auth/lib/session';
 import { OAuthProvider } from '@rekode/types/client/proto/auth';
 import { createFileRoute, redirect } from '@tanstack/react-router';
 import z from 'zod';
@@ -22,7 +22,7 @@ export const Route = createFileRoute('/auth/login/')({
     };
   },
   loader: async ({ deps }) => {
-    const prevSession = (await usePreviousAppSession()).data;
+    const prevSession = await getPreviousAppSession();
     if (Object.values(deps).some((v) => v === undefined)) {
       return { prevSession };
     }
@@ -35,6 +35,7 @@ export const Route = createFileRoute('/auth/login/')({
     });
     throw redirect({
       to: '/',
+      reloadDocument: true,
     });
   },
   component: SignInPage,
