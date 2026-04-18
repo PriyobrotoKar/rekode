@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+package template;
+
+service TemplateService {
+    rpc GetAllTemplates(GetAllTemplatesRequest) returns (GetAllTemplatesResponse) {}
+}
+
+message GetAllTemplatesRequest {
+    optional string language = 1;
+    optional Environment environment = 2;
+}
+
+message GetAllTemplatesResponse {
+    repeated Template templates = 1;
+}
+
+enum Environment {
+    ENVIRONMENT_UNSPECIFIED = 0;
+    ENVIRONMENT_BROWSER = 1;
+    ENVIRONMENT_SERVER = 2;
+}
+
+message Template {
+    string id = 1;
+    string slug = 2;
+    repeated string technologies = 3;
+    string language = 4;
+    Environment environment = 5;
+    string folder_url = 6;
+    optional string description = 7;
+}

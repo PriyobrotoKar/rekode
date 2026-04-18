@@ -3,8 +3,8 @@
   "version": "0.0.0",
   "scripts": {
     "build": "tsup src/**/*.ts --format cjs,esm --dts",
-    "gen-proto-types:client": "bunx protoc --ts_proto_opt=outputServices=none --ts_proto_opt=useNullAsOptional=true --proto_path=.. --ts_proto_out=./src/client ../proto/*.proto",
-    "gen-proto-types:server": "bunx protoc --ts_proto_opt=nestJs=true --ts_proto_opt=useNullAsOptional=true --proto_path=.. --ts_proto_out=./src/server ../proto/*.proto",
+    "gen-proto-types:client": "bunx protoc --ts_proto_opt=outputServices=none --ts_proto_opt=useNullAsOptional=true --ts_proto_opt=useExactTypes=false --proto_path=.. --ts_proto_out=./src/client ../proto/*.proto",
+    "gen-proto-types:server": "bunx protoc --ts_proto_opt=nestJs=true --ts_proto_opt=useNullAsOptional=true --ts_proto_opt=useExactTypes=false --proto_path=.. --ts_proto_out=./src/server ../proto/*.proto",
     "gen-proto-types": "bun run gen-proto-types:client && bun run gen-proto-types:server"
   },
   "exports": {

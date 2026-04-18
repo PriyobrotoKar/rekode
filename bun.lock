@@ -166,6 +166,43 @@
         "zod": "^4.3.6",
       },
     },
+    "apps/template-service": {
+      "name": "template-service",
+      "version": "0.0.1",
+      "dependencies": {
+        "@grpc/grpc-js": "catalog:nestjs",
+        "@grpc/proto-loader": "catalog:nestjs",
+        "@keyv/redis": "catalog:nestjs",
+        "@nestjs/cache-manager": "catalog:nestjs",
+        "@nestjs/common": "catalog:nestjs",
+        "@nestjs/config": "catalog:nestjs",
+        "@nestjs/core": "catalog:nestjs",
+        "@nestjs/microservices": "catalog:nestjs",
+        "@nestjs/platform-express": "catalog:nestjs",
+        "@prisma/adapter-pg": "catalog:prisma",
+        "@prisma/client": "catalog:prisma",
+        "@types/express": "catalog:",
+        "cache-manager": "catalog:nestjs",
+        "pg": "catalog:",
+        "reflect-metadata": "catalog:",
+        "rxjs": "catalog:nestjs",
+      },
+      "devDependencies": {
+        "@nestjs/cli": "catalog:nestjs",
+        "@nestjs/schematics": "catalog:nestjs",
+        "@rekode/eslint-config": "workspace:*",
+        "@rekode/types": "workspace:*",
+        "@rekode/typescript-config": "workspace:*",
+        "@types/node": "catalog:",
+        "jest": "catalog:",
+        "prisma": "catalog:prisma",
+        "source-map-support": "catalog:",
+        "ts-loader": "catalog:",
+        "ts-node": "catalog:",
+        "tsconfig-paths": "catalog:",
+        "typescript": "catalog:",
+      },
+    },
     "apps/user-service": {
       "name": "user-service",
       "version": "0.0.1",
@@ -3131,6 +3168,8 @@
     "tailwindcss": ["tailwindcss@4.2.1", "", {}, "sha512-/tBrSQ36vCleJkAOsy9kbNTgaxvGbyOamC30PRePTQe/o1MFwEKHQk4Cn7BNGaPtjp+PuUrByJehM1hgxfq4sw=="],
 
     "tapable": ["tapable@2.3.0", "", {}, "sha512-g9ljZiwki/LfxmQADO3dEY1CbpmXT5Hm2fJ+QaGKwSXUylMybePR7/67YW7jOrrvjEgL1Fmz5kzyAjWVWLlucg=="],
+
+    "template-service": ["template-service@workspace:apps/template-service"],
 
     "terser": ["terser@5.46.0", "", { "dependencies": { "@jridgewell/source-map": "^0.3.3", "acorn": "^8.15.0", "commander": "^2.20.0", "source-map-support": "~0.5.20" }, "bin": { "terser": "bin/terser" } }, "sha512-jTwoImyr/QbOWFFso3YoU3ik0jBBDJ6JTOQiy/J2YxVJdZCc+5u7skhNwiOR3FQIygFqVUPHl7qbbxtjW2K3Qg=="],
 

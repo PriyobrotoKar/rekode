@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { AUTH_PACKAGE_NAME } from '@rekode/types/server/proto/auth';
+import { TEMPLATE_PACKAGE_NAME } from '@rekode/types/server/proto/template';
 import { USER_PACKAGE_NAME } from '@rekode/types/server/proto/user';
 import { join } from 'node:path';
 
@@ -14,6 +15,7 @@ import { GithubOAuthStrategy } from './auth/strategy/github.strategy';
 import { GoogleOAuthStrategy } from './auth/strategy/google.strategy';
 import { JwtStrategy } from './auth/strategy/jwt.strategy';
 import { RefreshJwtStrategy } from './auth/strategy/refresh-jwt.strategy';
+import { TemplateController } from './template/template.controller';
 import { UserController } from './user/user.controller';
 
 @Module({
@@ -40,9 +42,18 @@ import { UserController } from './user/user.controller';
           url: 'localhost:6002',
         },
       },
+      {
+        name: TEMPLATE_PACKAGE_NAME,
+        transport: Transport.GRPC,
+        options: {
+          package: TEMPLATE_PACKAGE_NAME,
+          protoPath: join(__dirname, 'proto/template.proto'),
+          url: 'localhost:6003',
+        },
+      },
     ]),
   ],
-  controllers: [AppController, AuthController, UserController],
+  controllers: [AppController, AuthController, UserController, TemplateController],
   providers: [
     AppService,
     GoogleOAuthStrategy,

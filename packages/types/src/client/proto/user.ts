@@ -124,10 +124,10 @@ export const CreateUserIfNotExistsRequest: MessageFns<CreateUserIfNotExistsReque
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<CreateUserIfNotExistsRequest>, I>>(base?: I): CreateUserIfNotExistsRequest {
-    return CreateUserIfNotExistsRequest.fromPartial(base ?? ({} as any));
+  create(base?: DeepPartial<CreateUserIfNotExistsRequest>): CreateUserIfNotExistsRequest {
+    return CreateUserIfNotExistsRequest.fromPartial(base ?? {});
   },
-  fromPartial<I extends Exact<DeepPartial<CreateUserIfNotExistsRequest>, I>>(object: I): CreateUserIfNotExistsRequest {
+  fromPartial(object: DeepPartial<CreateUserIfNotExistsRequest>): CreateUserIfNotExistsRequest {
     const message = createBaseCreateUserIfNotExistsRequest();
     message.email = object.email ?? "";
     message.name = object.name ?? undefined;
@@ -184,12 +184,10 @@ export const CreateUserIfNotExistsResponse: MessageFns<CreateUserIfNotExistsResp
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<CreateUserIfNotExistsResponse>, I>>(base?: I): CreateUserIfNotExistsResponse {
-    return CreateUserIfNotExistsResponse.fromPartial(base ?? ({} as any));
+  create(base?: DeepPartial<CreateUserIfNotExistsResponse>): CreateUserIfNotExistsResponse {
+    return CreateUserIfNotExistsResponse.fromPartial(base ?? {});
   },
-  fromPartial<I extends Exact<DeepPartial<CreateUserIfNotExistsResponse>, I>>(
-    object: I,
-  ): CreateUserIfNotExistsResponse {
+  fromPartial(object: DeepPartial<CreateUserIfNotExistsResponse>): CreateUserIfNotExistsResponse {
     const message = createBaseCreateUserIfNotExistsResponse();
     message.user = (object.user !== undefined && object.user !== null) ? User.fromPartial(object.user) : null;
     return message;
@@ -244,10 +242,10 @@ export const GetUserRequest: MessageFns<GetUserRequest> = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<GetUserRequest>, I>>(base?: I): GetUserRequest {
-    return GetUserRequest.fromPartial(base ?? ({} as any));
+  create(base?: DeepPartial<GetUserRequest>): GetUserRequest {
+    return GetUserRequest.fromPartial(base ?? {});
   },
-  fromPartial<I extends Exact<DeepPartial<GetUserRequest>, I>>(object: I): GetUserRequest {
+  fromPartial(object: DeepPartial<GetUserRequest>): GetUserRequest {
     const message = createBaseGetUserRequest();
     message.id = object.id ?? "";
     return message;
@@ -302,10 +300,10 @@ export const GetUserResponse: MessageFns<GetUserResponse> = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<GetUserResponse>, I>>(base?: I): GetUserResponse {
-    return GetUserResponse.fromPartial(base ?? ({} as any));
+  create(base?: DeepPartial<GetUserResponse>): GetUserResponse {
+    return GetUserResponse.fromPartial(base ?? {});
   },
-  fromPartial<I extends Exact<DeepPartial<GetUserResponse>, I>>(object: I): GetUserResponse {
+  fromPartial(object: DeepPartial<GetUserResponse>): GetUserResponse {
     const message = createBaseGetUserResponse();
     message.user = (object.user !== undefined && object.user !== null) ? User.fromPartial(object.user) : null;
     return message;
@@ -392,10 +390,10 @@ export const UpdateUserRequest: MessageFns<UpdateUserRequest> = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<UpdateUserRequest>, I>>(base?: I): UpdateUserRequest {
-    return UpdateUserRequest.fromPartial(base ?? ({} as any));
+  create(base?: DeepPartial<UpdateUserRequest>): UpdateUserRequest {
+    return UpdateUserRequest.fromPartial(base ?? {});
   },
-  fromPartial<I extends Exact<DeepPartial<UpdateUserRequest>, I>>(object: I): UpdateUserRequest {
+  fromPartial(object: DeepPartial<UpdateUserRequest>): UpdateUserRequest {
     const message = createBaseUpdateUserRequest();
     message.id = object.id ?? "";
     message.name = object.name ?? undefined;
@@ -452,10 +450,10 @@ export const UpdateUserResponse: MessageFns<UpdateUserResponse> = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<UpdateUserResponse>, I>>(base?: I): UpdateUserResponse {
-    return UpdateUserResponse.fromPartial(base ?? ({} as any));
+  create(base?: DeepPartial<UpdateUserResponse>): UpdateUserResponse {
+    return UpdateUserResponse.fromPartial(base ?? {});
   },
-  fromPartial<I extends Exact<DeepPartial<UpdateUserResponse>, I>>(object: I): UpdateUserResponse {
+  fromPartial(object: DeepPartial<UpdateUserResponse>): UpdateUserResponse {
     const message = createBaseUpdateUserResponse();
     message.user = (object.user !== undefined && object.user !== null) ? User.fromPartial(object.user) : null;
     return message;
@@ -557,10 +555,10 @@ export const User: MessageFns<User> = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<User>, I>>(base?: I): User {
-    return User.fromPartial(base ?? ({} as any));
+  create(base?: DeepPartial<User>): User {
+    return User.fromPartial(base ?? {});
   },
-  fromPartial<I extends Exact<DeepPartial<User>, I>>(object: I): User {
+  fromPartial(object: DeepPartial<User>): User {
     const message = createBaseUser();
     message.id = object.id ?? "";
     message.email = object.email ?? "";
@@ -578,10 +576,6 @@ export type DeepPartial<T> = T extends Builtin ? T
   : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
   : Partial<T>;
 
-type KeysOfUnion<T> = T extends T ? keyof T : never;
-export type Exact<P, I extends P> = P extends Builtin ? P
-  : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
-
 function isSet(value: any): boolean {
   return value !== null && value !== undefined;
 }
@@ -591,6 +585,6 @@ export interface MessageFns<T> {
   decode(input: BinaryReader | Uint8Array, length?: number): T;
   fromJSON(object: any): T;
   toJSON(message: T): unknown;
-  create<I extends Exact<DeepPartial<T>, I>>(base?: I): T;
-  fromPartial<I extends Exact<DeepPartial<T>, I>>(object: I): T;
+  create(base?: DeepPartial<T>): T;
+  fromPartial(object: DeepPartial<T>): T;
 }
