@@ -54,7 +54,6 @@ export class TemplateService {
       language: template.language,
       environment:
         this.protoEnvironmentMap[template.environment] ?? Environment.ENVIRONMENT_UNSPECIFIED,
-      folderUrl: template.folderUrl,
       description: template.description,
     };
   }

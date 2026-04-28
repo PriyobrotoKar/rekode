@@ -27,6 +27,5 @@ message Template {
     repeated string technologies = 3;
     string language = 4;
     Environment environment = 5;
-    string folder_url = 6;
     optional string description = 7;
 }

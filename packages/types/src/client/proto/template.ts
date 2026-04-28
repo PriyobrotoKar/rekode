@@ -63,7 +63,6 @@ export interface Template {
   technologies: string[];
   language: string;
   environment: Environment;
-  folderUrl: string;
   description?: string | null | undefined;
 }
 
@@ -206,7 +205,7 @@ export const GetAllTemplatesResponse: MessageFns<GetAllTemplatesResponse> = {
 };
 
 function createBaseTemplate(): Template {
-  return { id: "", slug: "", technologies: [], language: "", environment: 0, folderUrl: "", description: null };
+  return { id: "", slug: "", technologies: [], language: "", environment: 0, description: null };
 }
 
 export const Template: MessageFns<Template> = {
@@ -225,9 +224,6 @@ export const Template: MessageFns<Template> = {
     }
     if (message.environment !== 0) {
       writer.uint32(40).int32(message.environment);
-    }
-    if (message.folderUrl !== "") {
-      writer.uint32(50).string(message.folderUrl);
     }
     if (message.description !== undefined && message.description !== null) {
       writer.uint32(58).string(message.description);
@@ -282,14 +278,6 @@ export const Template: MessageFns<Template> = {
           message.environment = reader.int32() as any;
           continue;
         }
-        case 6: {
-          if (tag !== 50) {
-            break;
-          }
-
-          message.folderUrl = reader.string();
-          continue;
-        }
         case 7: {
           if (tag !== 58) {
             break;
@@ -316,11 +304,6 @@ export const Template: MessageFns<Template> = {
         : [],
       language: isSet(object.language) ? globalThis.String(object.language) : "",
       environment: isSet(object.environment) ? environmentFromJSON(object.environment) : 0,
-      folderUrl: isSet(object.folderUrl)
-        ? globalThis.String(object.folderUrl)
-        : isSet(object.folder_url)
-        ? globalThis.String(object.folder_url)
-        : "",
       description: isSet(object.description) ? globalThis.String(object.description) : null,
     };
   },
@@ -342,9 +325,6 @@ export const Template: MessageFns<Template> = {
     if (message.environment !== 0) {
       obj.environment = environmentToJSON(message.environment);
     }
-    if (message.folderUrl !== "") {
-      obj.folderUrl = message.folderUrl;
-    }
     if (message.description !== undefined && message.description !== null) {
       obj.description = message.description;
     }
@@ -361,7 +341,6 @@ export const Template: MessageFns<Template> = {
     message.technologies = object.technologies?.map((e) => e) || [];
     message.language = object.language ?? "";
     message.environment = object.environment ?? 0;
-    message.folderUrl = object.folderUrl ?? "";
     message.description = object.description ?? undefined;
     return message;
   },

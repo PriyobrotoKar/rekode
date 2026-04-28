@@ -32,7 +32,6 @@ export interface Template {
   technologies: string[];
   language: string;
   environment: Environment;
-  folderUrl: string;
   description?: string | null | undefined;
 }
 
