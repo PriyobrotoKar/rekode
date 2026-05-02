@@ -35,7 +35,7 @@ function useAppSession(): ReturnType<typeof useSession<SessionData>> {
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       httpOnly: true,
-      expires: new Date(Date.now() + expiresIn),
+      maxAge: expiresIn / 1000,
     },
   });
 }

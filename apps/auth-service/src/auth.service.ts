@@ -179,10 +179,14 @@ export class AuthService implements OnModuleInit {
 
     await this.createAccountIfNotExists(accountId, providerMap[provider], user.id);
 
-    const [accessToken, refreshToken] = await this.generateTokens({
+    const payload: JWTPayload = {
       email: user.email,
       id: user.id,
-    });
+    };
+
+    const [accessToken, refreshToken] = await this.generateTokens(payload);
+
+    await this.updateRefreshToken(payload.id, refreshToken);
 
     return { accessToken, refreshToken };
   }

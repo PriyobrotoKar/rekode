@@ -1,6 +1,7 @@
 import type {
   LoginWithEmailResponse,
   LogoutResponse,
+  RefreshTokenResponse,
   VerifyOtpRequest,
   VerifyOtpResponse,
 } from '@rekode/types/client/proto/auth';
@@ -16,6 +17,10 @@ export class AuthController {
 
   static async verifyOtp(data: VerifyOtpRequest): Promise<VerifyOtpResponse> {
     return this.apiClient.post('/verify-otp', data);
+  }
+
+  static async refreshToken(headers?: Record<string, string>): Promise<RefreshTokenResponse> {
+    return this.apiClient.post('/refresh-token', undefined, { headers });
   }
 
   static async logout(): Promise<LogoutResponse> {

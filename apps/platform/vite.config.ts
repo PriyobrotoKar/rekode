@@ -6,6 +6,9 @@ import { defineConfig } from 'vite';
 import tsconfigPaths from 'vite-tsconfig-paths';
 
 const config = defineConfig({
+  optimizeDeps: {
+    include: ['use-sync-external-store/shim', 'use-sync-external-store/shim/with-selector'],
+  },
   plugins: [
     devtools(),
     tsconfigPaths({ projects: ['./tsconfig.json'] }),

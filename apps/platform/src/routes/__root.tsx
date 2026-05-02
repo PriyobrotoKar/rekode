@@ -2,9 +2,7 @@ import { UserController } from '@/features/user/api';
 import '@fontsource-variable/space-grotesk';
 import '@fontsource-variable/work-sans';
 import appCss from '@rekode/ui/globals.css?url';
-import { TanStackDevtools } from '@tanstack/react-devtools';
 import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router';
-import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools';
 
 import { Toaster } from '@rekode/ui/components/sonner';
 
@@ -46,20 +44,9 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       <head>
         <HeadContent />
       </head>
-      <body className="dark font-sans wrap-anywhere antialiased selection:bg-[rgba(79,184,178,0.24)]">
+      <body className="dark selection:bg-primary/20 font-sans wrap-anywhere antialiased">
         {children}
         <Toaster richColors />
-        {/*<TanStackDevtools
-          config={{
-            position: 'bottom-right',
-          }}
-          plugins={[
-            {
-              name: 'Tanstack Router',
-              render: <TanStackRouterDevtoolsPanel />,
-            },
-          ]}
-        />*/}
         <Scripts />
       </body>
     </html>

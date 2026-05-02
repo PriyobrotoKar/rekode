@@ -1,4 +1,6 @@
-import { getAppSession, removeAppSession, setAppSession } from '@/features/auth/lib/session';
+import { getAppSession, removeAppSession } from '@/features/auth/lib/session';
+
+import { refreshTokens } from './auth';
 
 export class ApiError extends Error {
   readonly code: number;
@@ -17,28 +19,12 @@ export class ApiClient {
 
   constructor(private readonly resourceUrl: string) {}
 
-  private async refreshTokens() {
+  async fetch<T = unknown>(url?: string, options?: RequestInit): Promise<T> {
     const session = await getAppSession();
-    console.log('refreshing tokens', session.refresh_token);
-
-    const cookie = `access_token=${session.access_token}; refresh_token=${session.refresh_token};`;
-
-    const res = await fetch(this.baseUrl + '/auth/refresh-token', {
-      method: 'POST',
-      headers: { Cookie: cookie },
-    });
-
-    if (!res.ok) {
-      const error = await res.json();
-      console.log('error while refreshing tokens', error.message);
-      return null;
+    if (!session) {
+      throw new ApiError('Session not found', 401);
     }
 
-    return (await res.json()) as { accessToken: string; refreshToken: string };
-  }
-
-  async fetch(url?: string, options?: RequestInit) {
-    const session = await getAppSession();
     const cookie = `access_token=${session.access_token}; refresh_token=${session.refresh_token};`;
 
     console.log(cookie);
@@ -55,23 +41,30 @@ export class ApiClient {
         throw new ApiError(error.message, res.status);
       }
 
-      return await res.json();
+      return (await res.json()) as T;
     } catch (error) {
       console.error(JSON.stringify(error));
       if (error instanceof ApiError) {
         if (error.code === 404 && options?.method === 'GET') {
-          return null;
+          return null as T;
         }
 
         if (error.code === 401) {
-          const tokens = await this.refreshTokens();
+          const tokens = await refreshTokens();
           if (tokens === null) {
             await removeAppSession();
-            return null;
+            return null as T;
           }
-          const { accessToken, refreshToken } = tokens;
-          await setAppSession({ data: { access_token: accessToken, refresh_token: refreshToken } });
-          return this.fetch(url, options);
+          const updatedCookies = tokens;
+
+          const headers = {
+            ...options?.headers,
+            ...('Cookie' in updatedCookies && {
+              Cookie: updatedCookies.Cookie,
+            }),
+          };
+
+          return this.fetch(url, { ...options, headers });
         }
 
         throw error;
@@ -81,14 +74,14 @@ export class ApiClient {
     }
   }
 
-  async get(url?: string, options?: RequestInit) {
+  async get<T = unknown>(url?: string, options?: RequestInit): Promise<T> {
     return await this.fetch(url, {
       method: 'GET',
       ...options,
     });
   }
 
-  async post(url?: string, data?: unknown, options?: RequestInit) {
+  async post<T = unknown>(url?: string, data?: unknown, options?: RequestInit): Promise<T> {
     return await this.fetch(url, {
       method: 'POST',
       body: JSON.stringify(data),
@@ -96,7 +89,7 @@ export class ApiClient {
     });
   }
 
-  async patch(url?: string, data?: unknown, options?: RequestInit) {
+  async patch<T = unknown>(url?: string, data?: unknown, options?: RequestInit): Promise<T> {
     return await this.fetch(url, {
       method: 'PATCH',
       body: JSON.stringify(data),
@@ -104,7 +97,11 @@ export class ApiClient {
     });
   }
 
-  async put(url?: string, data?: Record<string, unknown>, options?: RequestInit) {
+  async put<T = unknown>(
+    url?: string,
+    data?: Record<string, unknown>,
+    options?: RequestInit,
+  ): Promise<T> {
     return await this.fetch(url, {
       method: 'PUT',
       body: JSON.stringify(data),
@@ -112,7 +109,7 @@ export class ApiClient {
     });
   }
 
-  async delete(url?: string, options?: RequestInit) {
+  async delete<T = unknown>(url?: string, options?: RequestInit): Promise<T> {
     return await this.fetch(url, {
       method: 'DELETE',
       ...options,

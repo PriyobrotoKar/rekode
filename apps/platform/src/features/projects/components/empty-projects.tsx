@@ -1,4 +1,4 @@
-import { IconBrandGithub, IconLayoutGridAdd, IconPlayerPlay } from '@tabler/icons-react';
+import { IconBrandGithub, IconLayoutGridAdd } from '@tabler/icons-react';
 
 import { Button } from '@rekode/ui/components/button';
 import {
@@ -9,6 +9,9 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from '@rekode/ui/components/empty';
+
+import { ConfigureProjectDialog } from './configure-project-dialog';
+import { CreateProjectDialog } from './create-project-dialog';
 
 export function EmptyProjects() {
   return (
@@ -30,10 +33,8 @@ export function EmptyProjects() {
           <IconBrandGithub data-icon="inline-start" />
           Import from GitHub
         </Button>
-        <Button variant="default" size="sm">
-          <IconPlayerPlay data-icon="inline-start" />
-          Start with template
-        </Button>
+        <CreateProjectDialog />
+        <ConfigureProjectDialog />
       </EmptyContent>
     </Empty>
   );
