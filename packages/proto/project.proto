@@ -1,0 +1,73 @@
+syntax = "proto3";
+
+package project;
+
+service ProjectService {
+  rpc CreateProject(CreateProjectRequest) returns (CreateProjectResponse) {}
+  rpc GetProject(GetProjectRequest) returns (GetProjectResponse) {}
+  rpc EditProject(EditProjectRequest) returns (EditProjectResponse) {}
+}
+
+message CreateProjectRequest {
+  string slug = 1;
+  string user_id = 2;
+  string template_id = 3;
+  optional string description = 4;
+  ProjectVisibility visibility = 5;
+}
+
+message CreateProjectResponse {
+  Project project = 1;
+}
+
+message GetProjectRequest {
+  string slug = 1;
+  string user_id = 2;
+}
+
+message GetProjectResponse {
+  Project project = 1;
+}
+
+message EditProjectRequest {
+  string slug = 1;
+  string user_id = 2;
+  optional string description = 3;
+  optional ProjectVisibility visibility = 4;
+  optional string template_id = 5;
+  optional string file_system_path = 6;
+  optional ProjectStatus status = 7;
+}
+
+message EditProjectResponse {
+  Project project = 1;
+}
+
+enum ProjectVisibility {
+  PROJECT_VISIBILITY_UNSPECIFIED = 0;
+  PROJECT_VISIBILITY_PUBLIC = 1;
+  PROJECT_VISIBILITY_PRIVATE = 2;
+}
+
+enum ProjectStatus {
+  PROJECT_STATUS_UNSPECIFIED = 0;
+  PROJECT_STATUS_BOOTING = 1;
+  PROJECT_STATUS_LOADING_FILES = 2;
+  PROJECT_STATUS_INSTALLING_DEPENDENCIES = 3;
+  PROJECT_STATUS_READY = 4;
+  PROJECT_STATUS_ERROR = 5;
+  PROJECT_STATUS_STOPPED = 6;
+}
+
+message Project {
+  string id = 1;
+  string slug = 2;
+  optional string description = 3;
+  ProjectVisibility visibility = 4;
+  string file_system_path = 5;
+  ProjectStatus status = 6;
+  string template_id = 7;
+  string user_id = 8;
+  string created_at = 9;
+  string updated_at = 10;
+}
