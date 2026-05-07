@@ -12,9 +12,21 @@ export class DockerProvider implements IContainerProvider {
 
   async createContainer(input: CreateContainterInput): Promise<void> {
     const container = await this.docker.createContainer({
-      Image: 'ubuntu',
+      Image: 'rekode/container-runtime',
       name: input.projectSlug,
       Tty: true,
+      ExposedPorts: {
+        ['9999/tcp']: {},
+      },
+      HostConfig: {
+        PortBindings: {
+          '9999/tcp': [
+            {
+              HostPort: '0',
+            },
+          ],
+        },
+      },
       Env: [
         `TEMPLATE_FOLDER_PATH=${input.templateFolderPath}`,
         `FILE_SYSTEM_PATH=${input.fileSystemPath}`,

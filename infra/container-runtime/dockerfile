@@ -1,0 +1,51 @@
+# ----------- STAGE 1: BUILD -----------
+FROM node:20 AS builder
+
+WORKDIR /internal
+
+RUN apt-get update && apt-get install -y \
+    python3 \
+    make \
+    g++ \
+    build-essential
+
+COPY package*.json ./
+RUN npm ci
+
+COPY . .
+RUN npm run build
+
+
+# ----------- STAGE 2: RUNTIME -----------
+FROM node:20-slim AS runner
+
+RUN apt-get update && apt-get install -y \
+    git \
+    vim \
+    nano \
+    less \
+    unzip \
+    procps \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /internal
+
+# Create non-root user
+RUN useradd -m -u 1001 coder
+
+# Copy everything we already built
+COPY --from=builder /internal/node_modules ./node_modules
+COPY --from=builder /internal/dist ./dist
+COPY --from=builder /internal/package*.json ./
+
+RUN chmod -R 755 /internal
+
+# Create workspace directory
+RUN cd ..
+RUN mkdir -p /workspace && chown -R coder:coder /workspace
+RUN chown -R coder:coder /internal
+
+# Switch to non-root user
+USER coder
+
+CMD ["node", "dist/src/server.js"]

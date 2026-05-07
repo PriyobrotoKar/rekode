@@ -15,6 +15,7 @@ import { Route as ProtectedIndexRouteImport } from './routes/_protected/index'
 import { Route as AuthVerifyOtpIndexRouteImport } from './routes/auth/verify-otp/index'
 import { Route as AuthProfileIndexRouteImport } from './routes/auth/profile/index'
 import { Route as AuthLoginIndexRouteImport } from './routes/auth/login/index'
+import { Route as ProtectedProjectSlugIndexRouteImport } from './routes/_protected/project/$slug/index'
 
 const AuthRouteRoute = AuthRouteRouteImport.update({
   id: '/auth',
@@ -45,6 +46,12 @@ const AuthLoginIndexRoute = AuthLoginIndexRouteImport.update({
   path: '/login/',
   getParentRoute: () => AuthRouteRoute,
 } as any)
+const ProtectedProjectSlugIndexRoute =
+  ProtectedProjectSlugIndexRouteImport.update({
+    id: '/project/$slug/',
+    path: '/project/$slug/',
+    getParentRoute: () => ProtectedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof ProtectedIndexRoute
@@ -52,6 +59,7 @@ export interface FileRoutesByFullPath {
   '/auth/login/': typeof AuthLoginIndexRoute
   '/auth/profile/': typeof AuthProfileIndexRoute
   '/auth/verify-otp/': typeof AuthVerifyOtpIndexRoute
+  '/project/$slug/': typeof ProtectedProjectSlugIndexRoute
 }
 export interface FileRoutesByTo {
   '/auth': typeof AuthRouteRouteWithChildren
@@ -59,6 +67,7 @@ export interface FileRoutesByTo {
   '/auth/login': typeof AuthLoginIndexRoute
   '/auth/profile': typeof AuthProfileIndexRoute
   '/auth/verify-otp': typeof AuthVerifyOtpIndexRoute
+  '/project/$slug': typeof ProtectedProjectSlugIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -68,6 +77,7 @@ export interface FileRoutesById {
   '/auth/login/': typeof AuthLoginIndexRoute
   '/auth/profile/': typeof AuthProfileIndexRoute
   '/auth/verify-otp/': typeof AuthVerifyOtpIndexRoute
+  '/_protected/project/$slug/': typeof ProtectedProjectSlugIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -77,8 +87,15 @@ export interface FileRouteTypes {
     | '/auth/login/'
     | '/auth/profile/'
     | '/auth/verify-otp/'
+    | '/project/$slug/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/auth' | '/' | '/auth/login' | '/auth/profile' | '/auth/verify-otp'
+  to:
+    | '/auth'
+    | '/'
+    | '/auth/login'
+    | '/auth/profile'
+    | '/auth/verify-otp'
+    | '/project/$slug'
   id:
     | '__root__'
     | '/_protected'
@@ -87,6 +104,7 @@ export interface FileRouteTypes {
     | '/auth/login/'
     | '/auth/profile/'
     | '/auth/verify-otp/'
+    | '/_protected/project/$slug/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -138,15 +156,24 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthLoginIndexRouteImport
       parentRoute: typeof AuthRouteRoute
     }
+    '/_protected/project/$slug/': {
+      id: '/_protected/project/$slug/'
+      path: '/project/$slug'
+      fullPath: '/project/$slug/'
+      preLoaderRoute: typeof ProtectedProjectSlugIndexRouteImport
+      parentRoute: typeof ProtectedRouteRoute
+    }
   }
 }
 
 interface ProtectedRouteRouteChildren {
   ProtectedIndexRoute: typeof ProtectedIndexRoute
+  ProtectedProjectSlugIndexRoute: typeof ProtectedProjectSlugIndexRoute
 }
 
 const ProtectedRouteRouteChildren: ProtectedRouteRouteChildren = {
   ProtectedIndexRoute: ProtectedIndexRoute,
+  ProtectedProjectSlugIndexRoute: ProtectedProjectSlugIndexRoute,
 }
 
 const ProtectedRouteRouteWithChildren = ProtectedRouteRoute._addFileChildren(
