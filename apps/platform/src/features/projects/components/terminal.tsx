@@ -1,27 +1,47 @@
-import { useEffect, useRef } from 'react';
-
 import {
-  IconLayoutBoardSplit,
-  IconLayoutColumns,
-  IconPlus,
-  IconTerminal,
-} from '@tabler/icons-react';
+  type ForwardedRef,
+  type MutableRefObject,
+  forwardRef,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
+
+import { IconLayoutColumns, IconPlus, IconTerminal } from '@tabler/icons-react';
+import { useHotkey } from '@tanstack/react-hotkeys';
 import { FitAddon } from '@xterm/addon-fit';
 import { WebglAddon } from '@xterm/addon-webgl';
 import { Terminal as XTerminal } from '@xterm/xterm';
 import '@xterm/xterm/css/xterm.css';
+import { useAtomValue } from 'jotai';
 
 import { Button } from '@rekode/ui/components/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@rekode/ui/components/tabs';
+import { cn } from '@rekode/ui/lib/utils';
 
+import { workspaceTaskStatus } from '../lib/atoms';
 import { useSocket } from '../providers/socket-provider';
 
 const TERMINAL_OUTPUT_NAMESPACE = 'terminal.output';
 const TERMINAL_INPUT_NAMESPACE = 'terminal.input';
 const TERMINAL_RESIZE_NAMESPACE = 'terminal.resize';
 
-export function Terminal() {
+type TerminalProps = object;
+
+function assignRef<T>(ref: ForwardedRef<T>, value: T | null) {
+  if (typeof ref === 'function') {
+    ref(value);
+    return;
+  }
+
+  if (ref) {
+    (ref as MutableRefObject<T | null>).current = value;
+  }
+}
+
+export const Terminal = forwardRef<XTerminal, TerminalProps>(function Terminal(_, forwardedRef) {
   const terminalRef = useRef<HTMLDivElement>(null);
+  const termRef = useRef<XTerminal | null>(null);
   const rootStyles = getComputedStyle(document.body);
   const bgColor = rootStyles.getPropertyValue('--background').trim();
 
@@ -32,11 +52,13 @@ export function Terminal() {
 
     const term = new XTerminal({
       cursorBlink: true,
-      fontSize: 14,
+      fontSize: 12,
       theme: {
         background: bgColor,
       },
     });
+    termRef.current = term;
+    assignRef(forwardedRef, term);
 
     const fitAddon = new FitAddon();
     const webglAddon = new WebglAddon();
@@ -73,20 +95,43 @@ export function Terminal() {
     };
 
     window.addEventListener('resize', handleResize);
+    term.focus();
 
     return () => {
       window.removeEventListener('resize', handleResize);
+      termRef.current = null;
+      assignRef(forwardedRef, null);
       term.dispose(); // cleanup
     };
-  }, []);
+  }, [bgColor, forwardedRef, send, subscribe]);
 
-  return <div ref={terminalRef} className="h-60 w-full bg-transparent px-3" />;
-}
+  return <div ref={terminalRef} className="h-56 w-full bg-transparent px-3" />;
+});
 
 export function Terminals() {
+  const [terminalOpen, setTerminalOpen] = useState(true);
+  const workspaceStatus = useAtomValue(workspaceTaskStatus);
+  const terminalRef = useRef<XTerminal | null>(null);
+
+  const isWorkspaceReady = Object.values(workspaceStatus).every(
+    (status) => status === 'completed' || status === 'failed',
+  );
+
+  useHotkey('Mod+J', () => {
+    if (terminalOpen) {
+      setTerminalOpen(false);
+      terminalRef.current?.blur();
+    } else {
+      setTerminalOpen(true);
+      terminalRef.current?.focus();
+    }
+  });
+
+  if (!isWorkspaceReady) return null;
+
   return (
-    <Tabs className={'h-72'}>
-      <div className="flex justify-between border-y">
+    <Tabs className={cn('h-68', !terminalOpen && 'pointer-events-none h-0')}>
+      <div className="bg-card flex justify-between border-y">
         <TabsList variant={'line'}>
           <TabsTrigger value={'tty-1'} className={'px-3 text-xs'}>
             <IconTerminal /> Terminal
@@ -95,7 +140,7 @@ export function Terminals() {
         <TerminalActions />
       </div>
       <TabsContent value={'tty-1'}>
-        <Terminal />
+        <Terminal ref={terminalRef} />
       </TabsContent>
     </Tabs>
   );

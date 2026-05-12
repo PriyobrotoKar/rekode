@@ -1,9 +1,10 @@
-import { createContext, useContext, useEffect, useRef, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 
 import { socketEventBus } from '../lib/socket-event-bus';
 
 interface SocketContextProps {
-  subscribe: (event: string, cb: (payload: any) => void) => void;
+  isReady: boolean;
+  subscribe: (event: string, cb: (payload: any) => void) => () => void;
   send: (event: string, data: any) => void;
 }
 
@@ -11,11 +12,19 @@ const SocketContext = createContext<SocketContextProps | null>(null);
 
 export function SocketProvider({ children }: { children: React.ReactNode }) {
   const socketRef = useRef<WebSocket | null>(null);
+  const reconnectTimeoutRef = useRef<number | null>(null);
+  const reconnectAttemptsRef = useRef(0);
+  const [isReady, setIsReady] = useState(false);
 
-  const subscribe = (event: string, cb: (payload: any) => void) =>
-    socketEventBus.addListener(event, cb);
+  const MAX_RECONNECT_ATTEMPTS = 5;
+  const BASE_RETRY_DELAY_MS = 1000;
 
-  const send = (event: string, data: any) => {
+  const subscribe = useCallback(
+    (event: string, cb: (payload: any) => void) => socketEventBus.addListener(event, cb),
+    [],
+  );
+
+  const send = useCallback((event: string, data: any) => {
     if (!socketRef.current) return;
 
     if (socketRef.current.readyState !== WebSocket.OPEN) {
@@ -23,22 +32,76 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
     }
 
     socketRef.current.send(JSON.stringify({ namespace: event, payload: data }));
-  };
+  }, []);
 
   useEffect(() => {
-    const ws = new WebSocket('ws://localhost:9999');
+    let isUnmounted = false;
 
-    socketRef.current = ws;
-
-    ws.onmessage = (e) => {
-      const parsed = JSON.parse(e.data);
-
-      if (!parsed.namespace) return;
-
-      socketEventBus.emit(parsed.namespace, parsed.payload);
+    const clearReconnectTimeout = () => {
+      if (reconnectTimeoutRef.current !== null) {
+        window.clearTimeout(reconnectTimeoutRef.current);
+        reconnectTimeoutRef.current = null;
+      }
     };
 
-    return () => ws.close();
+    const connect = () => {
+      if (isUnmounted) return;
+
+      const ws = new WebSocket('ws://localhost:9999');
+      socketRef.current = ws;
+
+      ws.onopen = () => {
+        if (socketRef.current !== ws) return;
+
+        setIsReady(true);
+        reconnectAttemptsRef.current = 0;
+      };
+
+      ws.onmessage = (e) => {
+        const parsed = JSON.parse(e.data);
+
+        if (!parsed.namespace) return;
+
+        socketEventBus.emit(parsed.namespace, parsed.payload);
+      };
+
+      ws.onerror = () => {
+        if (socketRef.current !== ws) return;
+
+        setIsReady(false);
+      };
+
+      ws.onclose = () => {
+        if (socketRef.current !== ws) return;
+
+        setIsReady(false);
+        socketRef.current = null;
+
+        if (isUnmounted || reconnectAttemptsRef.current >= MAX_RECONNECT_ATTEMPTS) {
+          return;
+        }
+
+        const nextAttempt = reconnectAttemptsRef.current + 1;
+        reconnectAttemptsRef.current = nextAttempt;
+        const retryDelay = BASE_RETRY_DELAY_MS * nextAttempt;
+
+        clearReconnectTimeout();
+
+        reconnectTimeoutRef.current = window.setTimeout(() => {
+          connect();
+        }, retryDelay);
+      };
+    };
+
+    connect();
+
+    return () => {
+      isUnmounted = true;
+      clearReconnectTimeout();
+      socketRef.current?.close();
+      socketRef.current = null;
+      setIsReady(false);
+    };
   }, []);
 
   return (
@@ -46,6 +109,7 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
       value={{
         subscribe,
         send,
+        isReady,
       }}
     >
       {children}

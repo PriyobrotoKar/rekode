@@ -45,6 +45,13 @@ RUN cd ..
 RUN mkdir -p /workspace && chown -R coder:coder /workspace
 RUN chown -R coder:coder /internal
 
+# Create npm global directory for coder
+RUN mkdir -p /home/coder/.npm-global && \
+    chown -R coder:coder /home/coder/.npm-global
+
+ENV NPM_CONFIG_PREFIX=/home/coder/.npm-global
+ENV PATH=$PATH:/home/coder/.npm-global/bin
+
 # Switch to non-root user
 USER coder
 

@@ -1,5 +1,11 @@
 import { logoutMutationOptions } from '@/features/auth/queries';
-import { IconBell, IconLayoutGrid, IconLogout, IconSettings } from '@tabler/icons-react';
+import {
+  IconBell,
+  IconLayoutGrid,
+  IconLogout,
+  type IconProps,
+  IconSettings,
+} from '@tabler/icons-react';
 import { useMutation } from '@tanstack/react-query';
 import { useRouteContext, useRouter } from '@tanstack/react-router';
 
@@ -13,14 +19,19 @@ import {
   DropdownMenuTrigger,
 } from '@rekode/ui/components/dropdown-menu';
 
-export function Header() {
+interface HeaderProps {
+  Icon?: React.FC<IconProps>;
+  title?: string;
+}
+
+export function Header({ Icon = IconLayoutGrid, title = 'Projects' }: HeaderProps) {
   return (
-    <header className="flex items-center justify-between border-b p-2">
+    <header className="flex h-(--header-height) items-center justify-between border-b p-2">
       <div className="flex items-center gap-2">
         <div className="bg-muted flex size-7 items-center justify-center rounded-sm">
-          <IconLayoutGrid className="size-4" />
+          <Icon className="size-4" />
         </div>
-        <span className="text-md-medium">Projects</span>
+        <span className="text-md-medium">{title}</span>
       </div>
 
       <div className="flex gap-2">

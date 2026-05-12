@@ -1,4 +1,5 @@
 import { UserController } from '@/features/user/api';
+import '@fontsource-variable/geist-mono';
 import '@fontsource-variable/space-grotesk';
 import '@fontsource-variable/work-sans';
 import appCss from '@rekode/ui/globals.css?url';

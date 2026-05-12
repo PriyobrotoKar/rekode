@@ -19,7 +19,7 @@ export const Route = createFileRoute('/_protected')({
 
 function RouteComponent() {
   return (
-    <div>
+    <div className="[--header-height:calc(--spacing(12))]">
       <Outlet />
     </div>
   );

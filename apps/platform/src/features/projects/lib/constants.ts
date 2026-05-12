@@ -24,3 +24,18 @@ const TEMPLATE_ENVIRONMENTS: { id: TemplateCategory; label: string; icon: React.
 export { TEMPLATE_CATEGORIES, TEMPLATE_ENVIRONMENTS };
 
 export type { TemplateCategory };
+
+export const lanugageMap = {
+  js: 'javascript',
+  py: 'python',
+  go: 'go',
+  yml: 'yaml',
+  json: 'json',
+  ts: 'typescript',
+  tsx: 'typescript',
+  jsx: 'javascript',
+  css: 'css',
+  scss: 'scss',
+  sass: 'scss',
+  html: 'html',
+};
