@@ -63,6 +63,7 @@ export interface Template {
   technologies: string[];
   language: string;
   environment: Environment;
+  repoUrl: string;
   description?: string | null | undefined;
 }
 
@@ -205,7 +206,7 @@ export const GetAllTemplatesResponse: MessageFns<GetAllTemplatesResponse> = {
 };
 
 function createBaseTemplate(): Template {
-  return { id: "", slug: "", technologies: [], language: "", environment: 0, description: null };
+  return { id: "", slug: "", technologies: [], language: "", environment: 0, repoUrl: "", description: null };
 }
 
 export const Template: MessageFns<Template> = {
@@ -225,8 +226,11 @@ export const Template: MessageFns<Template> = {
     if (message.environment !== 0) {
       writer.uint32(40).int32(message.environment);
     }
+    if (message.repoUrl !== "") {
+      writer.uint32(58).string(message.repoUrl);
+    }
     if (message.description !== undefined && message.description !== null) {
-      writer.uint32(58).string(message.description);
+      writer.uint32(66).string(message.description);
     }
     return writer;
   },
@@ -283,6 +287,14 @@ export const Template: MessageFns<Template> = {
             break;
           }
 
+          message.repoUrl = reader.string();
+          continue;
+        }
+        case 8: {
+          if (tag !== 66) {
+            break;
+          }
+
           message.description = reader.string();
           continue;
         }
@@ -304,6 +316,11 @@ export const Template: MessageFns<Template> = {
         : [],
       language: isSet(object.language) ? globalThis.String(object.language) : "",
       environment: isSet(object.environment) ? environmentFromJSON(object.environment) : 0,
+      repoUrl: isSet(object.repoUrl)
+        ? globalThis.String(object.repoUrl)
+        : isSet(object.repo_url)
+        ? globalThis.String(object.repo_url)
+        : "",
       description: isSet(object.description) ? globalThis.String(object.description) : null,
     };
   },
@@ -325,6 +342,9 @@ export const Template: MessageFns<Template> = {
     if (message.environment !== 0) {
       obj.environment = environmentToJSON(message.environment);
     }
+    if (message.repoUrl !== "") {
+      obj.repoUrl = message.repoUrl;
+    }
     if (message.description !== undefined && message.description !== null) {
       obj.description = message.description;
     }
@@ -341,6 +361,7 @@ export const Template: MessageFns<Template> = {
     message.technologies = object.technologies?.map((e) => e) || [];
     message.language = object.language ?? "";
     message.environment = object.environment ?? 0;
+    message.repoUrl = object.repoUrl ?? "";
     message.description = object.description ?? undefined;
     return message;
   },

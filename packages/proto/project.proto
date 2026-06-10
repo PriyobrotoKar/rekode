@@ -37,6 +37,7 @@ message EditProjectRequest {
   optional string template_id = 5;
   optional string file_system_path = 6;
   optional ProjectStatus status = 7;
+  optional string container_url = 8;
 }
 
 message EditProjectResponse {
@@ -51,12 +52,14 @@ enum ProjectVisibility {
 
 enum ProjectStatus {
   PROJECT_STATUS_UNSPECIFIED = 0;
-  PROJECT_STATUS_BOOTING = 1;
-  PROJECT_STATUS_LOADING_FILES = 2;
-  PROJECT_STATUS_INSTALLING_DEPENDENCIES = 3;
-  PROJECT_STATUS_READY = 4;
+  PROJECT_STATUS_CREATED = 1;
+  PROJECT_STATUS_RUNNING = 2;
+  PROJECT_STATUS_PAUSED = 3;
+  PROJECT_STATUS_RESTARTING = 4;
   PROJECT_STATUS_ERROR = 5;
-  PROJECT_STATUS_STOPPED = 6;
+  PROJECT_STATUS_REMOVING = 6;
+  PROJECT_STATUS_EXITED = 7;
+  PROJECT_STATUS_DEAD = 8;
 }
 
 message Project {
@@ -68,6 +71,7 @@ message Project {
   ProjectStatus status = 6;
   string template_id = 7;
   string user_id = 8;
-  string created_at = 9;
-  string updated_at = 10;
+  optional string container_url = 9;
+  string created_at = 10;
+  string updated_at = 11;
 }

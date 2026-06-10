@@ -27,8 +27,6 @@ export class ApiClient {
 
     const cookie = `access_token=${session.access_token}; refresh_token=${session.refresh_token};`;
 
-    console.log(cookie);
-
     try {
       const res = await fetch(this.baseUrl + this.resourceUrl + url, {
         credentials: 'include',

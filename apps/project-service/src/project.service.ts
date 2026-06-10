@@ -15,7 +15,11 @@ import {
 } from '@rekode/types/server/proto/project';
 
 import { Project } from './generated/prisma/client';
-import { ProjectVisibility as PrismaProjectVisibility } from './generated/prisma/enums';
+import {
+  ProjectStatus as PrismaProjectStatus,
+  ProjectVisibility as PrismaProjectVisibility,
+} from './generated/prisma/enums';
+import { ProjectUpdateInput } from './generated/prisma/models';
 import { PrismaService } from './prisma/prisma.service';
 
 @Injectable()
@@ -32,17 +36,18 @@ export class ProjectService {
     [ProjectVisibility.PROJECT_VISIBILITY_PRIVATE]: PrismaProjectVisibility.PRIVATE,
   };
 
-  // private readonly projectStatusMap: Record<ProjectStatus, PrismaProjectStatus | undefined> = {
-  //   [ProjectStatus.UNRECOGNIZED]: undefined,
-  //   [ProjectStatus.PROJECT_STATUS_UNSPECIFIED]: PrismaProjectStatus.READY,
-  //   [ProjectStatus.PROJECT_STATUS_BOOTING]: PrismaProjectStatus.BOOTING,
-  //   [ProjectStatus.PROJECT_STATUS_LOADING_FILES]: PrismaProjectStatus.LOADING_FILES,
-  //   [ProjectStatus.PROJECT_STATUS_INSTALLING_DEPENDENCIES]:
-  //     PrismaProjectStatus.INSTALLING_DEPENDENCIES,
-  //   [ProjectStatus.PROJECT_STATUS_READY]: PrismaProjectStatus.READY,
-  //   [ProjectStatus.PROJECT_STATUS_ERROR]: PrismaProjectStatus.ERROR,
-  //   [ProjectStatus.PROJECT_STATUS_STOPPED]: PrismaProjectStatus.STOPPED,
-  // };
+  private readonly projectStatusMap: Record<ProjectStatus, PrismaProjectStatus | undefined> = {
+    [ProjectStatus.UNRECOGNIZED]: undefined,
+    [ProjectStatus.PROJECT_STATUS_UNSPECIFIED]: PrismaProjectStatus.DEAD,
+    [ProjectStatus.PROJECT_STATUS_CREATED]: PrismaProjectStatus.CREATED,
+    [ProjectStatus.PROJECT_STATUS_RUNNING]: PrismaProjectStatus.RUNNING,
+    [ProjectStatus.PROJECT_STATUS_PAUSED]: PrismaProjectStatus.PAUSED,
+    [ProjectStatus.PROJECT_STATUS_RESTARTING]: PrismaProjectStatus.RESTARTING,
+    [ProjectStatus.PROJECT_STATUS_REMOVING]: PrismaProjectStatus.REMOVING,
+    [ProjectStatus.PROJECT_STATUS_EXITED]: PrismaProjectStatus.EXITED,
+    [ProjectStatus.PROJECT_STATUS_DEAD]: PrismaProjectStatus.DEAD,
+    [ProjectStatus.PROJECT_STATUS_ERROR]: PrismaProjectStatus.DEAD,
+  };
 
   constructor(
     private readonly prisma: PrismaService,
@@ -74,13 +79,13 @@ export class ProjectService {
         templateId,
         userId,
         fileSystemPath: `project/${slug}`,
+        status: PrismaProjectStatus.CREATED,
       },
     });
 
     this.kafkaClient.emit('project.created', {
       projectSlug: project.slug,
-      templateId: project.templateId,
-      fileSystemPath: project.fileSystemPath,
+      userId: project.userId,
     });
 
     return {
@@ -111,31 +116,63 @@ export class ProjectService {
     };
   }
 
-  editProject({
-    slug,
-    description,
-    visibility,
-    templateId,
-    fileSystemPath,
-    status,
-    userId,
-  }: EditProjectRequest) {
-    this.logger.log(`Requested to edit project: ${slug}`);
+  async editProject(dto: EditProjectRequest) {
+    this.logger.log(`Requested to edit project: ${dto.slug}`);
 
-    const project: ProtoProject = {
-      id: 'mock-project-id',
-      slug,
-      userId,
-      description: description ?? 'Mock project updated by editProject',
-      visibility: visibility ?? ProjectVisibility.PROJECT_VISIBILITY_PUBLIC,
-      templateId: templateId ?? 'mock-template-id',
-      fileSystemPath: fileSystemPath ?? '/tmp/mock-project',
-      status: status ?? ProjectStatus.PROJECT_STATUS_STOPPED,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
+    const project = await this.prisma.project.findUnique({
+      where: {
+        slug: dto.slug,
+        userId: dto.userId,
+      },
+      select: {
+        id: true,
+      },
+    });
 
-    return { project };
+    if (!project) {
+      this.logger.error(`Project not found with slug ${dto.slug} for user ${dto.userId}`);
+      throw new RpcException({
+        code: status.NOT_FOUND,
+        message: `Project does not exist`,
+      });
+    }
+
+    const mappedVisibility =
+      dto.visibility === undefined || dto.visibility === null
+        ? undefined
+        : this.projectVisibilityMap[dto.visibility];
+
+    const mappedStatus =
+      dto.status === undefined || dto.status === null
+        ? undefined
+        : this.projectStatusMap[dto.status];
+
+    const data = Object.fromEntries(
+      Object.entries({
+        description: dto.description,
+        visibility: mappedVisibility,
+        templateId: dto.templateId,
+        fileSystemPath: dto.fileSystemPath,
+        status: mappedStatus,
+        containerUrl: dto.containerUrl,
+      }).filter(([, value]) => value !== undefined),
+    ) as ProjectUpdateInput;
+
+    if (Object.keys(data).length === 0) {
+      throw new RpcException({
+        code: status.INVALID_ARGUMENT,
+        message: `No fields provided to update`,
+      });
+    }
+
+    const updatedProject = await this.prisma.project.update({
+      where: {
+        id: project.id,
+      },
+      data,
+    });
+
+    return { project: this.toProtoProject(updatedProject) };
   }
 
   private toProtoProject(project: Project): ProtoProject {
@@ -148,6 +185,7 @@ export class ProjectService {
       templateId: project.templateId,
       fileSystemPath: project.fileSystemPath,
       status: projectStatusFromJSON(`PROJECT_STATUS_${project.status}`),
+      containerUrl: project.containerUrl,
       createdAt: project.createdAt.toISOString(),
       updatedAt: project.updatedAt.toISOString(),
     };

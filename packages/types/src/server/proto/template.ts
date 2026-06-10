@@ -32,6 +32,7 @@ export interface Template {
   technologies: string[];
   language: string;
   environment: Environment;
+  repoUrl: string;
   description?: string | null | undefined;
 }
 

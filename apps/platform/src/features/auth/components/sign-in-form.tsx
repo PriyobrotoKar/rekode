@@ -47,8 +47,6 @@ export function SignInForm() {
     mutation.mutate(data.email);
   });
 
-  console.log(prevSession);
-
   return (
     <div className="flex flex-col gap-8">
       {/* Header */}

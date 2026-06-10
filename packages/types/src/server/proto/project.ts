@@ -19,12 +19,14 @@ export enum ProjectVisibility {
 
 export enum ProjectStatus {
   PROJECT_STATUS_UNSPECIFIED = 0,
-  PROJECT_STATUS_BOOTING = 1,
-  PROJECT_STATUS_LOADING_FILES = 2,
-  PROJECT_STATUS_INSTALLING_DEPENDENCIES = 3,
-  PROJECT_STATUS_READY = 4,
+  PROJECT_STATUS_CREATED = 1,
+  PROJECT_STATUS_RUNNING = 2,
+  PROJECT_STATUS_PAUSED = 3,
+  PROJECT_STATUS_RESTARTING = 4,
   PROJECT_STATUS_ERROR = 5,
-  PROJECT_STATUS_STOPPED = 6,
+  PROJECT_STATUS_REMOVING = 6,
+  PROJECT_STATUS_EXITED = 7,
+  PROJECT_STATUS_DEAD = 8,
   UNRECOGNIZED = -1,
 }
 
@@ -57,6 +59,7 @@ export interface EditProjectRequest {
   templateId?: string | null | undefined;
   fileSystemPath?: string | null | undefined;
   status?: ProjectStatus | null | undefined;
+  containerUrl?: string | null | undefined;
 }
 
 export interface EditProjectResponse {
@@ -72,6 +75,7 @@ export interface Project {
   status: ProjectStatus;
   templateId: string;
   userId: string;
+  containerUrl?: string | null | undefined;
   createdAt: string;
   updatedAt: string;
 }

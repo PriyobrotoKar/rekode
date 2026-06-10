@@ -50,12 +50,14 @@ export function projectVisibilityToJSON(object: ProjectVisibility): string {
 
 export enum ProjectStatus {
   PROJECT_STATUS_UNSPECIFIED = 0,
-  PROJECT_STATUS_BOOTING = 1,
-  PROJECT_STATUS_LOADING_FILES = 2,
-  PROJECT_STATUS_INSTALLING_DEPENDENCIES = 3,
-  PROJECT_STATUS_READY = 4,
+  PROJECT_STATUS_CREATED = 1,
+  PROJECT_STATUS_RUNNING = 2,
+  PROJECT_STATUS_PAUSED = 3,
+  PROJECT_STATUS_RESTARTING = 4,
   PROJECT_STATUS_ERROR = 5,
-  PROJECT_STATUS_STOPPED = 6,
+  PROJECT_STATUS_REMOVING = 6,
+  PROJECT_STATUS_EXITED = 7,
+  PROJECT_STATUS_DEAD = 8,
   UNRECOGNIZED = -1,
 }
 
@@ -65,23 +67,29 @@ export function projectStatusFromJSON(object: any): ProjectStatus {
     case "PROJECT_STATUS_UNSPECIFIED":
       return ProjectStatus.PROJECT_STATUS_UNSPECIFIED;
     case 1:
-    case "PROJECT_STATUS_BOOTING":
-      return ProjectStatus.PROJECT_STATUS_BOOTING;
+    case "PROJECT_STATUS_CREATED":
+      return ProjectStatus.PROJECT_STATUS_CREATED;
     case 2:
-    case "PROJECT_STATUS_LOADING_FILES":
-      return ProjectStatus.PROJECT_STATUS_LOADING_FILES;
+    case "PROJECT_STATUS_RUNNING":
+      return ProjectStatus.PROJECT_STATUS_RUNNING;
     case 3:
-    case "PROJECT_STATUS_INSTALLING_DEPENDENCIES":
-      return ProjectStatus.PROJECT_STATUS_INSTALLING_DEPENDENCIES;
+    case "PROJECT_STATUS_PAUSED":
+      return ProjectStatus.PROJECT_STATUS_PAUSED;
     case 4:
-    case "PROJECT_STATUS_READY":
-      return ProjectStatus.PROJECT_STATUS_READY;
+    case "PROJECT_STATUS_RESTARTING":
+      return ProjectStatus.PROJECT_STATUS_RESTARTING;
     case 5:
     case "PROJECT_STATUS_ERROR":
       return ProjectStatus.PROJECT_STATUS_ERROR;
     case 6:
-    case "PROJECT_STATUS_STOPPED":
-      return ProjectStatus.PROJECT_STATUS_STOPPED;
+    case "PROJECT_STATUS_REMOVING":
+      return ProjectStatus.PROJECT_STATUS_REMOVING;
+    case 7:
+    case "PROJECT_STATUS_EXITED":
+      return ProjectStatus.PROJECT_STATUS_EXITED;
+    case 8:
+    case "PROJECT_STATUS_DEAD":
+      return ProjectStatus.PROJECT_STATUS_DEAD;
     case -1:
     case "UNRECOGNIZED":
     default:
@@ -93,18 +101,22 @@ export function projectStatusToJSON(object: ProjectStatus): string {
   switch (object) {
     case ProjectStatus.PROJECT_STATUS_UNSPECIFIED:
       return "PROJECT_STATUS_UNSPECIFIED";
-    case ProjectStatus.PROJECT_STATUS_BOOTING:
-      return "PROJECT_STATUS_BOOTING";
-    case ProjectStatus.PROJECT_STATUS_LOADING_FILES:
-      return "PROJECT_STATUS_LOADING_FILES";
-    case ProjectStatus.PROJECT_STATUS_INSTALLING_DEPENDENCIES:
-      return "PROJECT_STATUS_INSTALLING_DEPENDENCIES";
-    case ProjectStatus.PROJECT_STATUS_READY:
-      return "PROJECT_STATUS_READY";
+    case ProjectStatus.PROJECT_STATUS_CREATED:
+      return "PROJECT_STATUS_CREATED";
+    case ProjectStatus.PROJECT_STATUS_RUNNING:
+      return "PROJECT_STATUS_RUNNING";
+    case ProjectStatus.PROJECT_STATUS_PAUSED:
+      return "PROJECT_STATUS_PAUSED";
+    case ProjectStatus.PROJECT_STATUS_RESTARTING:
+      return "PROJECT_STATUS_RESTARTING";
     case ProjectStatus.PROJECT_STATUS_ERROR:
       return "PROJECT_STATUS_ERROR";
-    case ProjectStatus.PROJECT_STATUS_STOPPED:
-      return "PROJECT_STATUS_STOPPED";
+    case ProjectStatus.PROJECT_STATUS_REMOVING:
+      return "PROJECT_STATUS_REMOVING";
+    case ProjectStatus.PROJECT_STATUS_EXITED:
+      return "PROJECT_STATUS_EXITED";
+    case ProjectStatus.PROJECT_STATUS_DEAD:
+      return "PROJECT_STATUS_DEAD";
     case ProjectStatus.UNRECOGNIZED:
     default:
       return "UNRECOGNIZED";
@@ -140,6 +152,7 @@ export interface EditProjectRequest {
   templateId?: string | null | undefined;
   fileSystemPath?: string | null | undefined;
   status?: ProjectStatus | null | undefined;
+  containerUrl?: string | null | undefined;
 }
 
 export interface EditProjectResponse {
@@ -155,6 +168,7 @@ export interface Project {
   status: ProjectStatus;
   templateId: string;
   userId: string;
+  containerUrl?: string | null | undefined;
   createdAt: string;
   updatedAt: string;
 }
@@ -500,6 +514,7 @@ function createBaseEditProjectRequest(): EditProjectRequest {
     templateId: null,
     fileSystemPath: null,
     status: null,
+    containerUrl: null,
   };
 }
 
@@ -525,6 +540,9 @@ export const EditProjectRequest: MessageFns<EditProjectRequest> = {
     }
     if (message.status !== undefined && message.status !== null) {
       writer.uint32(56).int32(message.status);
+    }
+    if (message.containerUrl !== undefined && message.containerUrl !== null) {
+      writer.uint32(66).string(message.containerUrl);
     }
     return writer;
   },
@@ -592,6 +610,14 @@ export const EditProjectRequest: MessageFns<EditProjectRequest> = {
           message.status = reader.int32() as any;
           continue;
         }
+        case 8: {
+          if (tag !== 66) {
+            break;
+          }
+
+          message.containerUrl = reader.string();
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -622,6 +648,11 @@ export const EditProjectRequest: MessageFns<EditProjectRequest> = {
         ? globalThis.String(object.file_system_path)
         : null,
       status: isSet(object.status) ? projectStatusFromJSON(object.status) : null,
+      containerUrl: isSet(object.containerUrl)
+        ? globalThis.String(object.containerUrl)
+        : isSet(object.container_url)
+        ? globalThis.String(object.container_url)
+        : null,
     };
   },
 
@@ -648,6 +679,9 @@ export const EditProjectRequest: MessageFns<EditProjectRequest> = {
     if (message.status !== undefined && message.status !== null) {
       obj.status = projectStatusToJSON(message.status);
     }
+    if (message.containerUrl !== undefined && message.containerUrl !== null) {
+      obj.containerUrl = message.containerUrl;
+    }
     return obj;
   },
 
@@ -663,6 +697,7 @@ export const EditProjectRequest: MessageFns<EditProjectRequest> = {
     message.templateId = object.templateId ?? undefined;
     message.fileSystemPath = object.fileSystemPath ?? undefined;
     message.status = object.status ?? undefined;
+    message.containerUrl = object.containerUrl ?? undefined;
     return message;
   },
 };
@@ -737,6 +772,7 @@ function createBaseProject(): Project {
     status: 0,
     templateId: "",
     userId: "",
+    containerUrl: null,
     createdAt: "",
     updatedAt: "",
   };
@@ -768,11 +804,14 @@ export const Project: MessageFns<Project> = {
     if (message.userId !== "") {
       writer.uint32(66).string(message.userId);
     }
+    if (message.containerUrl !== undefined && message.containerUrl !== null) {
+      writer.uint32(74).string(message.containerUrl);
+    }
     if (message.createdAt !== "") {
-      writer.uint32(74).string(message.createdAt);
+      writer.uint32(82).string(message.createdAt);
     }
     if (message.updatedAt !== "") {
-      writer.uint32(82).string(message.updatedAt);
+      writer.uint32(90).string(message.updatedAt);
     }
     return writer;
   },
@@ -853,11 +892,19 @@ export const Project: MessageFns<Project> = {
             break;
           }
 
-          message.createdAt = reader.string();
+          message.containerUrl = reader.string();
           continue;
         }
         case 10: {
           if (tag !== 82) {
+            break;
+          }
+
+          message.createdAt = reader.string();
+          continue;
+        }
+        case 11: {
+          if (tag !== 90) {
             break;
           }
 
@@ -895,6 +942,11 @@ export const Project: MessageFns<Project> = {
         : isSet(object.user_id)
         ? globalThis.String(object.user_id)
         : "",
+      containerUrl: isSet(object.containerUrl)
+        ? globalThis.String(object.containerUrl)
+        : isSet(object.container_url)
+        ? globalThis.String(object.container_url)
+        : null,
       createdAt: isSet(object.createdAt)
         ? globalThis.String(object.createdAt)
         : isSet(object.created_at)
@@ -934,6 +986,9 @@ export const Project: MessageFns<Project> = {
     if (message.userId !== "") {
       obj.userId = message.userId;
     }
+    if (message.containerUrl !== undefined && message.containerUrl !== null) {
+      obj.containerUrl = message.containerUrl;
+    }
     if (message.createdAt !== "") {
       obj.createdAt = message.createdAt;
     }
@@ -956,6 +1011,7 @@ export const Project: MessageFns<Project> = {
     message.status = object.status ?? 0;
     message.templateId = object.templateId ?? "";
     message.userId = object.userId ?? "";
+    message.containerUrl = object.containerUrl ?? undefined;
     message.createdAt = object.createdAt ?? "";
     message.updatedAt = object.updatedAt ?? "";
     return message;

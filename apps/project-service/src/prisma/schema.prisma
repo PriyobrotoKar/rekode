@@ -20,12 +20,13 @@ enum ProjectVisibility {
 }
 
 enum ProjectStatus {
-  BOOTING
-  LOADING_FILES
-  INSTALLING_DEPENDENCIES
-  READY
-  ERROR
-  STOPPED
+  CREATED
+  RUNNING
+  PAUSED
+  RESTARTING
+  REMOVING
+  EXITED
+  DEAD
 }
 
 model Project {
@@ -34,7 +35,8 @@ model Project {
   description    String?
   visibility     ProjectVisibility @default(PUBLIC)
   fileSystemPath String
-  status         ProjectStatus     @default(BOOTING)
+  status         ProjectStatus     @default(DEAD)
+  containerUrl   String?
 
   templateId String
   userId     String

@@ -27,5 +27,6 @@ message Template {
     repeated string technologies = 3;
     string language = 4;
     Environment environment = 5;
-    optional string description = 7;
+    string repo_url = 7;
+    optional string description = 8;
 }

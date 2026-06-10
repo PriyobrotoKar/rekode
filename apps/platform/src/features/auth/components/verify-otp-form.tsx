@@ -3,7 +3,7 @@ import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { OAuthProvider } from '@rekode/types/client/proto/auth';
 import { useMutation } from '@tanstack/react-query';
-import { Link, useNavigate, useRouter } from '@tanstack/react-router';
+import { Link, useRouter } from '@tanstack/react-router';
 
 import { Button } from '@rekode/ui/components/button';
 import { Field, FieldError } from '@rekode/ui/components/field';

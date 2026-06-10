@@ -10,7 +10,13 @@ interface SocketContextProps {
 
 const SocketContext = createContext<SocketContextProps | null>(null);
 
-export function SocketProvider({ children }: { children: React.ReactNode }) {
+export function SocketProvider({
+  children,
+  socketUrl,
+}: {
+  children: React.ReactNode;
+  socketUrl: string | null;
+}) {
   const socketRef = useRef<WebSocket | null>(null);
   const reconnectTimeoutRef = useRef<number | null>(null);
   const reconnectAttemptsRef = useRef(0);
@@ -45,9 +51,9 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
     };
 
     const connect = () => {
-      if (isUnmounted) return;
+      if (isUnmounted || !socketUrl) return;
 
-      const ws = new WebSocket('ws://localhost:9999');
+      const ws = new WebSocket(socketUrl);
       socketRef.current = ws;
 
       ws.onopen = () => {
@@ -102,7 +108,7 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
       socketRef.current = null;
       setIsReady(false);
     };
-  }, []);
+  }, [socketUrl]);
 
   return (
     <SocketContext.Provider

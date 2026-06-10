@@ -1,8 +1,10 @@
 import { Controller, useForm } from 'react-hook-form';
 
 import { zodResolver } from '@hookform/resolvers/zod';
+import { ProjectVisibility, projectVisibilityToJSON } from '@rekode/types/client/proto/project';
 import { IconCode, IconX } from '@tabler/icons-react';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { useNavigate } from '@tanstack/react-router';
 import { useAtom, useAtomValue } from 'jotai';
 
 import { Button } from '@rekode/ui/components/button';
@@ -33,12 +35,14 @@ import {
 import { Textarea } from '@rekode/ui/components/textarea';
 
 import { configureProjectDialogOpenAtom, templateAtom } from '../lib/atoms';
-import { getAllTemplatesQueryOptions } from '../queries';
+import { createProjectMutationOptions, getAllTemplatesQueryOptions } from '../queries';
 import {
   type ConfigureProjectSchema,
   configureProjectSchema,
   visibility_items,
 } from '../schema/configure-project';
+
+const slugify = (str: string) => str.toLowerCase().replace(/\s+/g, '-');
 
 export function ConfigureProjectDialog() {
   const [open, setOpen] = useAtom(configureProjectDialogOpenAtom);
@@ -90,18 +94,37 @@ function TemplateDetails() {
 }
 
 function ConfigureProjectForm() {
+  const selectedTemplate = useAtomValue(templateAtom);
+  const navigate = useNavigate();
+
   const form = useForm<ConfigureProjectSchema>({
     resolver: zodResolver(configureProjectSchema),
     defaultValues: {
       name: '',
-      visibility: 'PUBLIC',
+      visibility: ProjectVisibility.PROJECT_VISIBILITY_PUBLIC,
       description: '',
       initializeGit: true,
     },
   });
 
+  const mutation = useMutation({
+    ...createProjectMutationOptions,
+    onSuccess: ({ project }) => {
+      if (!project) return;
+
+      navigate({
+        to: '/project/$slug',
+        params: {
+          slug: project.slug,
+        },
+      });
+    },
+  });
+
   const onSubmit = form.handleSubmit((data) => {
-    console.log(data);
+    if (!selectedTemplate) return;
+    const slug = slugify(data.name);
+    mutation.mutate({ ...data, slug, templateId: selectedTemplate });
   });
 
   return (
@@ -131,7 +154,8 @@ function ConfigureProjectForm() {
           control={form.control}
           name="visibility"
           render={({ field, fieldState }) => {
-            const SelectedIcon = visibility_items[field.value];
+            const SelectedIcon =
+              visibility_items[field.value as Exclude<ProjectVisibility, 0 | -1>];
 
             return (
               <Field data-invalid={fieldState.invalid}>
@@ -141,7 +165,8 @@ function ConfigureProjectForm() {
                 <Select name={field.name} value={field.value} onValueChange={field.onChange}>
                   <SelectTrigger id={field.name} size="sm" aria-invalid={fieldState.invalid}>
                     <SelectValue placeholder="Select" className={'capitalize'}>
-                      {SelectedIcon && <SelectedIcon />} {field.value.toLowerCase()}
+                      {SelectedIcon && <SelectedIcon />}{' '}
+                      {projectVisibilityToJSON(field.value).split('_').at(-1)?.toLowerCase()}
                     </SelectValue>
                   </SelectTrigger>
                   <SelectContent>

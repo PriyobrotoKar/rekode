@@ -9,5 +9,6 @@ export const templates: Omit<TemplateCreateInput, 'id'>[] = [
     technologies: ['react', 'typescript'],
     language: 'javascript',
     environment: TemplateEnvironment.BROWSER,
+    repoUrl: 'https://github.com/urmilashirole/movieapp.github.io.git',
   },
 ];

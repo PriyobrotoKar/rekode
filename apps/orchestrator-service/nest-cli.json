@@ -8,6 +8,10 @@
       {
         "include": "../../../packages/proto/template.proto",
         "outDir": "dist/packages/template.proto"
+      },
+      {
+        "include": "../../../packages/proto/project.proto",
+        "outDir": "dist/packages/project.proto"
       }
     ],
     "watchAssets": true

@@ -1,4 +1,8 @@
-import { CreateContainterInput, IContainerProvider } from '@/interfaces/container-provider';
+import {
+  CreateContainerOutput,
+  CreateContainterInput,
+  IContainerProvider,
+} from '@/interfaces/container-provider';
 import { Injectable } from '@nestjs/common';
 import Docker from 'dockerode';
 
@@ -10,7 +14,7 @@ export class DockerProvider implements IContainerProvider {
     this.docker = new Docker();
   }
 
-  async createContainer(input: CreateContainterInput): Promise<void> {
+  async createContainer(input: CreateContainterInput): Promise<CreateContainerOutput> {
     const container = await this.docker.createContainer({
       Image: 'rekode/container-runtime',
       name: input.projectSlug,
@@ -27,12 +31,41 @@ export class DockerProvider implements IContainerProvider {
           ],
         },
       },
-      Env: [
-        `TEMPLATE_FOLDER_PATH=${input.templateFolderPath}`,
-        `FILE_SYSTEM_PATH=${input.fileSystemPath}`,
-      ],
+      Env: [`REPO_URL=${input.templateRepoUrl}`, `FILE_SYSTEM_PATH=${input.fileSystemPath}`],
     });
 
     await container.start();
+
+    const info = await this.inspectContainer(container);
+
+    const port = Object.values(info.NetworkSettings.Ports)[0]?.[0];
+
+    if (!port) {
+      throw new Error('Port not found');
+    }
+
+    const containerUrl = `http://localhost:${port.HostPort}`;
+
+    const containerStatus = info.State.Status;
+
+    return {
+      containerUrl,
+      containerStatus,
+    };
+  }
+
+  private async inspectContainer(
+    container: Docker.Container,
+  ): Promise<Docker.ContainerInspectInfo> {
+    return new Promise((resolve, reject) => {
+      container.inspect({}, (error, info) => {
+        if (error || !info) {
+          reject(error);
+          return;
+        }
+
+        resolve(info);
+      });
+    });
   }
 }
