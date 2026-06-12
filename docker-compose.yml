@@ -3,6 +3,15 @@ version: '5'
 name: 'Rekode'
 
 services:
+  gateway-service:
+    container_name: gateway-service
+    image: 'rekode/gateway-service:latest'
+    ports:
+      - '8080:8080'
+      - '8081:8081'
+    networks:
+      - rekode-container-net
+
   db:
     container_name: db
     image: postgres:18
@@ -49,6 +58,7 @@ services:
 
 networks:
   rekode-net:
+  rekode-container-net:
 
 volumes:
   db-data:

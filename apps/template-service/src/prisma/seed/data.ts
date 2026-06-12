@@ -3,12 +3,12 @@ import { TemplateCreateInput } from '@/generated/prisma/models';
 
 export const templates: Omit<TemplateCreateInput, 'id'>[] = [
   {
-    slug: 'react-typescript',
+    slug: 'astro',
     description:
-      'A modern React project template with TypeScript support for building type-safe, scalable web applications. Includes best practices, pre-configured tooling, and a solid foundation for developing robust frontend solutions.',
-    technologies: ['react', 'typescript'],
+      "Brutal is a minimal neobrutalist theme for Astro. It's based on Neobrutalist Web Design, a movement that aims to create websites with a minimalistic and functional design. It has some integrations like Image Optimization, RSS, Sitemap, ready to get your SEO done right.",
+    technologies: ['astro', 'typescript'],
     language: 'javascript',
     environment: TemplateEnvironment.BROWSER,
-    repoUrl: 'https://github.com/urmilashirole/movieapp.github.io.git',
+    repoUrl: 'https://github.com/eliancodes/brutal',
   },
 ];
