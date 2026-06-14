@@ -22,7 +22,7 @@ export class DockerProvider implements IContainerProvider {
       Env: [`REPO_URL=${input.templateRepoUrl}`, `FILE_SYSTEM_PATH=${input.fileSystemPath}`],
     });
 
-    const network = this.docker.getNetwork('rekode-container-net');
+    const network = this.docker.getNetwork('rekode_container-net');
 
     await container.start();
 

@@ -16,9 +16,9 @@ RUN bun install --production --frozen-lockfile
 COPY --from=pruner /app/out/full/ .
 
 FROM base AS runner
-COPY --from=installer node_modules ./node_modules
-COPY --from=installer ./src ./src
-COPY --from=installer package.json ./package.json
+COPY --from=installer /app/node_modules ./node_modules
+COPY --from=installer /app/apps/gateway-service/src ./src
+COPY --from=installer /app/apps/gateway-service/package.json ./package.json
 
 USER bun
 EXPOSE 8080

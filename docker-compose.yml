@@ -10,7 +10,7 @@ services:
       - '8080:8080'
       - '8081:8081'
     networks:
-      - rekode-container-net
+      - container-net
 
   db:
     container_name: db
@@ -24,7 +24,7 @@ services:
       - db-data:/var/lib/postgresql
       - ./docker/postgres/init:/docker-entrypoint-initdb.d
     networks:
-      - rekode-net
+      - internal-net
 
   redis:
     container_name: redis
@@ -32,7 +32,7 @@ services:
     ports:
       - 6379:6379
     networks:
-      - rekode-net
+      - internal-net
     volumes:
       - redis:/data
 
@@ -54,11 +54,11 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
     networks:
-      - rekode-net
+      - internal-net
 
 networks:
-  rekode-net:
-  rekode-container-net:
+  internal-net:
+  container-net:
 
 volumes:
   db-data:
