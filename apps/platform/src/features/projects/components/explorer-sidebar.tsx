@@ -1,12 +1,7 @@
 import { type CSSProperties, useCallback, useEffect, useRef, useState } from 'react';
 
 import '@pierre/trees/react';
-import {
-  FileTree,
-  useFileTree,
-  useFileTreeSelection,
-  useFileTreeSelector,
-} from '@pierre/trees/react';
+import { FileTree, useFileTree, useFileTreeSelector } from '@pierre/trees/react';
 import { IconFilePlus, IconFolderPlus, IconLayoutSidebarRight } from '@tabler/icons-react';
 import { useAtom, useAtomValue, useSetAtom } from 'jotai';
 
@@ -22,7 +17,14 @@ import {
 
 import { areArraysEqual } from '@/lib/utis';
 
-import { currentPathAtom, editorTabsAtom, workspaceTaskStatus } from '../lib/atoms';
+import {
+  currentPathAtom,
+  editorTabsAtom,
+  lastClosedTabPathAtom,
+  maximizePreviewAtom,
+  pathStackAtom,
+  workspaceTasksAtom,
+} from '../lib/atoms';
 import { useSocket } from '../providers/socket-provider';
 
 const TASK_STATE_UPDATED = 'task.state.updated';
@@ -72,9 +74,11 @@ const FILE_EXCLUSIONS = [
 export function ExplorerSidebar() {
   const { setOpen, toggleSidebar } = useSidebar();
   const [loading, setLoading] = useState(true);
-  const workspaceStatus = useAtomValue(workspaceTaskStatus);
-  const setEditorTabs = useSetAtom(editorTabsAtom);
+  const workspaceTasks = useAtomValue(workspaceTasksAtom);
+  const [editorTabs, setEditorTabs] = useAtom(editorTabsAtom);
   const [currentPath, setCurrentPath] = useAtom(currentPathAtom);
+  const [pathStack, setPathStack] = useAtom(pathStackAtom);
+  const setMaximizePreview = useSetAtom(maximizePreviewAtom);
   const currentPathRef = useRef<string>('');
   const selectedPathRef = useRef<string | undefined>(undefined);
   const isSyncingSelectionRef = useRef(false);
@@ -84,7 +88,6 @@ export function ExplorerSidebar() {
   const requestedDirsRef = useRef<Set<string>>(new Set());
   const paths = useRef<string[]>([]);
   const gitStatus = useRef([]);
-  const changedPathsQueueRef = useRef<ChangedFilePayload[]>([]);
   const flushTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const { subscribe, send, isReady } = useSocket();
@@ -97,7 +100,8 @@ export function ExplorerSidebar() {
     },
   });
 
-  const selectedPaths = useFileTreeSelection(model);
+  const getSelectedPaths = useCallback((m: typeof model) => m.getSelectedPaths(), []);
+  const selectedPaths = useFileTreeSelector(model, getSelectedPaths, areArraysEqual);
 
   const isExpandedDirectoryItem = (
     item: ReturnType<typeof model.getItem>,
@@ -152,8 +156,8 @@ export function ExplorerSidebar() {
   }, [currentPath]);
 
   useEffect(() => {
-    setOpen(workspaceStatus.clone_repo !== 'pending');
-  }, [workspaceStatus.clone_repo]);
+    setOpen(workspaceTasks.clone_repo.status !== 'pending');
+  }, [workspaceTasks.clone_repo]);
 
   useEffect(() => {
     selectedPathRef.current = selectedPaths[0];
@@ -162,7 +166,7 @@ export function ExplorerSidebar() {
   useEffect(() => {
     if (!isReady) return;
 
-    if (workspaceStatus.clone_repo === 'completed') {
+    if (workspaceTasks.clone_repo.status === 'completed') {
       send(DIR_REQUESTED_EVENT, { path: '/' });
     }
 
@@ -213,7 +217,10 @@ export function ExplorerSidebar() {
       unsubscribeGitStatus();
       unsubscribeFileCreated();
     };
-  }, [subscribe, model, isReady, send, workspaceStatus]);
+  }, [subscribe, model, isReady, send, workspaceTasks]);
+
+  const lastClosedTabPath = useAtomValue(lastClosedTabPathAtom);
+  const setLastClosedTabPath = useSetAtom(lastClosedTabPathAtom);
 
   useEffect(() => {
     if (!currentPath || isDirectory(currentPath)) return;
@@ -235,7 +242,17 @@ export function ExplorerSidebar() {
   }, [currentPath, model, requestFile]);
 
   useEffect(() => {
+    if (!lastClosedTabPath) return;
+
+    const item = model.getItem(lastClosedTabPath);
+    item?.deselect();
+    setLastClosedTabPath(null);
+  }, [lastClosedTabPath, model, setLastClosedTabPath]);
+
+  useEffect(() => {
     const path = selectedPaths[0];
+
+    console.log(path);
 
     if (!path) return;
     const item = model.getItem(path);
@@ -253,15 +270,21 @@ export function ExplorerSidebar() {
     }
 
     // On filetree selection only
-    setEditorTabs((prev) =>
-      prev.map((tab) => tab.path).includes(path)
+    console.log('Updated tabs', editorTabs);
+    setEditorTabs((prev) => {
+      console.log('Prev', prev);
+      return prev.map((tab) => tab.path).includes(path)
         ? prev
-        : [...prev, { path, hasUnsavedChanges: false }],
-    );
+        : [...prev, { path, hasUnsavedChanges: false }];
+    });
 
-    if (currentPathRef.current === path) return;
+    // if (currentPathRef.current === path) return;
 
     setCurrentPath(path);
+    setMaximizePreview((prev) => prev ? false : prev);
+    const index = pathStack.findIndex((p) => p === path);
+    if (index !== -1) pathStack.splice(index, 1);
+    setPathStack([...pathStack, path]);
   }, [selectedPaths, setCurrentPath, setEditorTabs]);
 
   useEffect(() => {

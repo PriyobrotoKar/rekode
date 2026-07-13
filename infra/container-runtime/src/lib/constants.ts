@@ -1,6 +1,7 @@
 export enum WsNamespace {
   TASK_STATE_REQUESTED = 'task.state.requested',
   TASK_STATE_UPDATED = 'task.state.updated',
+  TASK_LOG = 'task.log',
 
   TERMINAL_OUTPUT = 'terminal.output',
   TERMINAL_INPUT = 'terminal.input',
@@ -21,4 +22,12 @@ export enum WsNamespace {
 
 export const ROOT_DIR = '../workspace';
 
-export const WATCHER_IGNORED_PATHS = ['.git'];
+export const WATCHER_IGNORED_PATHS = [
+  '.git',
+  'node_modules',
+  '.next',
+  'dist',
+  'build',
+  '.turbo',
+  'coverage',
+];

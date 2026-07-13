@@ -56,6 +56,9 @@ export class TemplateService {
         this.protoEnvironmentMap[template.environment] ?? Environment.ENVIRONMENT_UNSPECIFIED,
       description: template.description,
       repoUrl: template.repoUrl,
+      installCmd: template.installCmd,
+      buildCmd: template.buildCmd,
+      startCmd: template.startCmd,
     };
   }
 }

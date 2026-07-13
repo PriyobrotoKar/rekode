@@ -1,5 +1,6 @@
 import { UserController } from '@/features/user/api';
 import '@fontsource-variable/geist-mono';
+import '@fontsource-variable/geist-mono';
 import '@fontsource-variable/space-grotesk';
 import '@fontsource-variable/work-sans';
 import appCss from '@rekode/ui/globals.css?url';
@@ -26,7 +27,7 @@ export const Route = createRootRoute({
         content: 'width=device-width, initial-scale=1',
       },
       {
-        title: 'TanStack Start Starter',
+        title: 'Rekode',
       },
     ],
     links: [

@@ -41,11 +41,23 @@ export function handleConnection(ws: WebSocket) {
 
   refreshGitStatus();
 
+  function replayInstallLogs() {
+    for (const chunk of taskManager.getInstallLogs()) {
+      sendEvent(WsNamespace.TASK_LOG, { taskId: 'install_deps', chunk, stream: 'stdout' });
+    }
+  }
+
+  replayInstallLogs();
+
   const unsubscribeTaskManager = taskManager.subscribe((event) => {
     console.log(`Task state updated: ${event.namespace}, ${event.payload}`);
     const task = event.payload?.task;
 
-    if (task?.id === 'clone_repo' && task.status === 'completed') globalWatcher.resume();
+    if (task?.id === 'clone_repo' && task.status === 'completed') {
+      void Promise.all([globalWatcher.loadGitignore(), selectiveWatcher.loadGitignore()]).then(
+        () => globalWatcher.resume(),
+      );
+    }
 
     sendEvent(event.namespace, event.payload);
   });

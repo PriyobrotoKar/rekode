@@ -4,6 +4,7 @@
   "private": true,
   "exports": {
     "./globals.css": "./src/styles/globals.css",
+    "./dotmatrix-loader.css": "./src/styles/dotmatrix-loader.css",
     "./postcss.config": "./postcss.config.mjs",
     "./lib/*": "./src/lib/*.ts",
     "./components/*": "./src/components/*.tsx",
@@ -22,7 +23,6 @@
     "@types/react": "catalog:react19",
     "@types/react-dom": "catalog:react19",
     "eslint": "catalog:",
-    "prettier-plugin-tailwindcss": "^0.7.2",
     "typescript": "catalog:"
   },
   "dependencies": {

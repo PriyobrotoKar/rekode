@@ -4,17 +4,21 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "dev": "bun --watch src/main.ts"
+    "dev": "bun --watch src/main.ts",
+    "build": "tsup src/main.ts --format esm",
+    "start": "node dist/main.js"
   },
   "dependencies": {
     "@fastify/http-proxy": "^11.5.0",
     "@fastify/reply-from": "^12.6.2",
-    "fastify": "5.7.4"
+    "fastify": "5.7.4",
+    "ioredis": "^5.11.1"
   },
   "devDependencies": {
     "@rekode/eslint-config": "workspace:*",
     "@rekode/typescript-config": "workspace:*",
     "@types/bun": "latest",
+    "tsup": "^8.5.1",
     "typescript": "catalog:"
   }
 }

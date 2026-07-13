@@ -1,146 +1,176 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
-import { IconCheck, IconLoader2 } from '@tabler/icons-react';
-import { useAtom } from 'jotai';
+import {
+  IconCircle,
+  IconCircleCheckFilled,
+  IconLoader2,
+  type IconProps,
+} from '@tabler/icons-react';
+import { AnimatePresence, motion } from 'motion/react';
 
+import { Badge } from '@rekode/ui/components/badge';
+import { DotmSquare7 } from '@rekode/ui/components/dotm-square-7';
 import { cn } from '@rekode/ui/lib/utils';
 
-import { type WorkspaceTaskStatus, workspaceTaskStatus } from '../lib/atoms';
-import { useSocket } from '../providers/socket-provider';
+import { type LoaderStepId, useWorkspaceStatus } from '../hooks/use-workspace-status';
+import type { WorkspaceTasks } from '../lib/atoms';
 
-const TASK_STATE_UPDATED_EVENT = 'task.state.updated';
-const TASK_STATE_REQUESTED_EVENT = 'task.state.requested';
+interface Step {
+  id: LoaderStepId;
+  label: string;
+  startTime?: number;
+  endTime?: number;
+}
 
-type LoaderStepId = 'create_workspace' | 'clone_repo' | 'install_deps';
-
-const LOADER_STEPS: Array<{ id: LoaderStepId; label: string }> = [
+const LOADER_STEPS: Array<Step> = [
   { id: 'create_workspace', label: 'Creating Workspace' },
   { id: 'clone_repo', label: 'Cloning Repository' },
   { id: 'install_deps', label: 'Installing Dependencies' },
+  { id: 'start_development_server', label: 'Starting Development Server' },
 ];
 
-const STEP_HEIGHT = 30;
+interface StepStatus {
+  status: 'completed' | 'pending' | 'active';
+  icon: React.FC<IconProps>;
+  rule: (activeStepIndex: number, index: number) => boolean;
+}
 
-const getActiveStepId = (
-  taskId: string | undefined,
-  status: WorkspaceTaskStatus,
-  taskState: string | undefined,
-): LoaderStepId | null => {
-  if (taskId === 'clone_repo' && taskState === 'completed') {
-    return status.install_deps === 'completed' ? null : 'install_deps';
+const stepStatus: Array<StepStatus> = [
+  {
+    status: 'completed',
+    icon: IconCircleCheckFilled,
+    rule: (activeStepIndex, index) => index < activeStepIndex,
+  },
+  {
+    status: 'pending',
+    icon: IconCircle,
+    rule: (activeStepIndex, index) => index > activeStepIndex,
+  },
+  {
+    status: 'active',
+    icon: IconLoader2,
+    rule: (activeStepIndex, index) => index === activeStepIndex,
+  },
+];
+
+const calculateTaskTiming = (tasks: WorkspaceTasks, currentStepId: LoaderStepId) => {
+  const currentTask = tasks[currentStepId];
+
+  if (!currentTask) {
+    if (Object.keys(tasks).length === 0)
+      return {
+        startTime: 0,
+        endTime: undefined,
+      };
+
+    const firstTask = Object.values(tasks)[0];
+    return {
+      startTime: firstTask.startTime - 2000,
+      endTime: firstTask.startTime,
+    };
   }
 
-  if (taskId === 'install_deps' && taskState === 'completed') {
-    return null;
-  }
-
-  if (taskId === 'clone_repo' || taskId === 'install_deps') {
-    return taskId;
-  }
-
-  if (status.clone_repo !== 'completed' && status.install_deps !== 'failed') {
-    return 'create_workspace';
-  }
-
-  if (status.install_deps !== 'completed' && status.install_deps !== 'failed') {
-    return 'install_deps';
-  }
-
-  return null;
+  return {
+    startTime: currentTask.startTime,
+    endTime: currentTask.endTime,
+  };
 };
 
 export function WorkspaceLoader() {
-  const { subscribe, send, isReady } = useSocket();
-  const [workspaceStatus, setWorkspaceStatus] = useAtom(workspaceTaskStatus);
-  const [activeStepId, setActiveStepId] = useState<LoaderStepId>('create_workspace');
-
-  const isWorkspaceReady = Object.values(workspaceStatus).every(
-    (status) => status === 'completed' || status === 'failed',
-  );
-
-  const activeStepIndex = Math.max(
-    LOADER_STEPS.findIndex((step) => step.id === activeStepId),
-    0,
-  );
-
-  const offset = STEP_HEIGHT - activeStepIndex * STEP_HEIGHT;
+  const { workspaceTasks, activeStepId, isWorkspaceReady, installLogs } = useWorkspaceStatus();
+  const logsRef = useRef<HTMLPreElement>(null);
+  const [loadingTimer, setLoadingTimer] = useState(Date.now() - (workspaceTasks.clone_repo.startTime ?? Date.now()));
 
   useEffect(() => {
-    if (!isReady) return;
-    send(TASK_STATE_REQUESTED_EVENT, {});
+    const el = logsRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  }, [installLogs]);
 
-    const unsubscribeTaskManagerStateUpdate = subscribe(TASK_STATE_UPDATED_EVENT, (payload) => {
-      const taskId: string | undefined = payload.taskId ?? undefined;
-
-      setWorkspaceStatus((prev) => {
-        const nextStatus: WorkspaceTaskStatus = { ...prev };
-
-        if (payload.tasks) {
-          const cloneTask = payload.tasks.clone_repo;
-          const installTask = payload.tasks.install_deps;
-
-          if (cloneTask) nextStatus.clone_repo = cloneTask.status;
-          if (installTask) nextStatus.install_deps = installTask.status;
-        }
-
-        if (taskId === 'clone_repo' || taskId === 'install_deps') {
-          nextStatus[taskId] = payload.task?.status ?? 'pending';
-        }
-
-        const nextActiveStep = getActiveStepId(taskId, nextStatus, payload.task?.status);
-        if (nextActiveStep) {
-          setActiveStepId(nextActiveStep);
-        }
-
-        return nextStatus;
-      });
-    });
-
-    return () => {
-      unsubscribeTaskManagerStateUpdate();
-    };
-  }, [subscribe, isReady, send, setWorkspaceStatus]);
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setLoadingTimer((prev) => prev + 100);
+    }, 100);
+    return () => clearInterval(timer);
+  }, []);
 
   if (isWorkspaceReady) return null;
 
   return (
     <div className="bg-background flex flex-1 items-center justify-center">
-      <div className="relative flex items-center gap-3">
-        <div className="absolute flex h-full w-5 items-center justify-center">
-          <IconLoader2 className="text-foreground/90 size-4 animate-spin" stroke={1.8} />
+      <div className="bg-card w-full max-w-sm rounded-2xl border p-1">
+        <div className="flex items-center gap-2 px-3 py-2">
+          <h3 className="text-md-medium">Sandbox</h3>
+          <Badge variant={'outline'}>javascript</Badge>
         </div>
 
-        <div className="h-[90px] overflow-hidden">
-          <div
-            className="ease-out-cubic flex flex-col transition-transform duration-500"
-            style={{ transform: `translateY(${offset}px)` }}
-          >
+        <div className="bg-background rounded-xl p-2">
+          <div className="flex flex-col gap-2 p-1">
             {LOADER_STEPS.map((step, index) => {
-              const isCompleted = index < activeStepIndex;
-              const isActive = index === activeStepIndex;
+              const activeStepIndex = LOADER_STEPS.findIndex((s) => s.id === activeStepId);
+              const stepStat = stepStatus.find((status) => status.rule(activeStepIndex, index));
+              const { startTime, endTime } = calculateTaskTiming(workspaceTasks, step.id);
+
+              if (!stepStat) return null;
+              const Icon = stepStat.icon;
+              const status = stepStat.status;
 
               return (
-                <div key={step.id} className="flex h-[30px] items-center gap-2 pl-1 text-sm">
-                  <span className="flex w-3.5 items-center justify-center">
-                    {isCompleted ? (
-                      <IconCheck
-                        className="animate-in text-secondary fade-in size-3 duration-300"
-                        stroke={2.2}
+                <div
+                  key={step.id}
+                  className={cn(
+                    'text-foreground flex items-center gap-2 text-sm transition-colors',
+                    status === 'pending' && 'text-muted-foreground',
+                  )}
+                >
+                  <AnimatePresence mode="popLayout" initial={false}>
+                    <motion.div
+                      key={status === 'completed' ? 'completed' : 'normal'}
+                      initial={{ opacity: 0, scale: 0.7, rotate: -90 }}
+                      animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                      exit={{ opacity: 0, scale: 0.7, rotate: 90 }}
+                      transition={{
+                        type: 'spring',
+                        stiffness: 100,
+                        damping: 10,
+                      }}
+                      className=""
+                    >
+                      <Icon
+                        className={cn(
+                          'size-4 text-green-500',
+                          status === 'pending' && 'text-muted-foreground',
+                          status === 'active' && 'animate-spin',
+                        )}
+                        stroke={1.8}
                       />
-                    ) : null}
-                  </span>
-                  <span
-                    className={cn(
-                      'text-muted-foreground origin-left scale-90 transition-all duration-500',
-                      isActive && 'text-foreground scale-100 font-medium',
-                      isCompleted && 'text-secondary',
-                    )}
-                  >
-                    {step.label}
+                    </motion.div>
+                  </AnimatePresence>
+                  <span className="flex-1">{step.label}</span>
+                  <span className="text-muted-foreground font-mono text-xs">
+                    {endTime !== undefined && startTime !== undefined
+                      ? `${endTime - startTime}ms`
+                      : '...'}
                   </span>
                 </div>
               );
             })}
+          </div>
+
+          {installLogs && (
+            <pre
+              ref={logsRef}
+              className="text-muted-foreground no-scrollbar bg-card mt-2 max-h-32 overflow-y-auto rounded-lg p-2 font-mono text-xs whitespace-pre-wrap transition-[height]"
+            >
+              {installLogs}
+            </pre>
+          )}
+        </div>
+
+        <div className="flex items-center justify-between gap-2 px-3 py-2 text-sm">
+          <span className="text-muted-foreground font-mono text-xs">{(loadingTimer / 1000).toFixed(1)}s</span>
+          <div className="flex items-center gap-2">
+            <span className="text-muted-foreground">Executing</span>{' '}
+            <DotmSquare7 size={20} dotSize={2.5} opacityPeak={1} />
           </div>
         </div>
       </div>

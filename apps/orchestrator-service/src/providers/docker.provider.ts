@@ -19,7 +19,14 @@ export class DockerProvider implements IContainerProvider {
       Image: 'rekode/container-runtime',
       name: input.projectSlug,
       Tty: true,
-      Env: [`REPO_URL=${input.templateRepoUrl}`, `FILE_SYSTEM_PATH=${input.fileSystemPath}`],
+      Env: [
+        `REPO_URL=${input.templateRepoUrl}`,
+        `FILE_SYSTEM_PATH=${input.fileSystemPath}`,
+        `CONTAINER_NAME=${input.projectSlug}`,
+        `INSTALL_CMD=${input.installCmd}`,
+        `BUILD_CMD=${input.buildCmd}`,
+        `START_CMD=${input.startCmd}`,
+      ],
     });
 
     const network = this.docker.getNetwork('rekode_container-net');
@@ -30,13 +37,14 @@ export class DockerProvider implements IContainerProvider {
 
     const info = await this.inspectContainer(container);
 
-    const containerUrl = `http://${info.Name}.localhost`;
-
+    const containerName = info.Name;
+    const containerUrl = `http://${containerName}.localhost`;
     const containerStatus = info.State.Status;
 
     return {
       containerUrl,
       containerStatus,
+      containerName,
     };
   }
 

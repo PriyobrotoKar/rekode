@@ -10,6 +10,7 @@
 @theme inline {
   --font-heading: 'Space Grotesk Variable', sans-serif;
   --font-sans: 'Work Sans Variable', sans-serif;
+  --font-mono: 'Geist Mono Variable', monospace;
 
   --text-5xl: 1.5rem;
   --text-5xl--line-height: 2.325rem;
@@ -155,5 +156,26 @@
   }
   .tabler-icon {
     @apply size-5 stroke-[1.8];
+  }
+
+   .no-scrollbar::-webkit-scrollbar {
+     display: none;
+   }
+   .no-scrollbar {
+     -ms-overflow-style: none;  /* IE and Edge */
+     scrollbar-width: none;  /* Firefox */
+   }
+
+  ::-webkit-scrollbar {
+    @apply h-3 w-3;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-border rounded-full border-4 border-transparent bg-clip-padding;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-border/80;
   }
 }

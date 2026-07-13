@@ -62,6 +62,15 @@ import { UserController } from './user/user.controller';
           url: 'localhost:6004',
         },
       },
+      {
+        name: 'KAFKA_SERVICE',
+        transport: Transport.KAFKA,
+        options: {
+          client: {
+            brokers: ['localhost:9092'],
+          },
+        },
+      },
     ]),
   ],
   controllers: [

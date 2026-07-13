@@ -1,7 +1,22 @@
 import chokidar, { ChokidarOptions, FSWatcher } from 'chokidar';
+import ignore, { Ignore } from 'ignore';
+import { readFile } from 'node:fs/promises';
 import pathUtils from 'node:path';
 
 import { ROOT_DIR, WATCHER_IGNORED_PATHS } from '../lib/constants';
+
+async function loadGitignoreMatcher(rootDir: string): Promise<Ignore> {
+  const matcher = ignore();
+  try {
+    const contents = await readFile(pathUtils.join(rootDir, '.gitignore'), 'utf-8');
+    matcher.add(contents);
+  } catch (err: unknown) {
+    if ((err as NodeJS.ErrnoException).code !== 'ENOENT') {
+      console.error('Failed to read .gitignore:', err);
+    }
+  }
+  return matcher;
+}
 
 type PathHandler = (paths: string[]) => void | Promise<void>;
 type WatcherHandlers = {
@@ -18,13 +33,14 @@ export class WatcherService {
   private readonly rootDir: string;
   isPaused: boolean = false;
   watchingDirs: string[] = [];
+  private gitignoreMatcher: Ignore | null = null;
 
   private constructor(rootDir: string, options?: ChokidarOptions) {
     this.rootDir = pathUtils.resolve(rootDir);
 
     this.watcher = chokidar.watch(this.rootDir, {
       ignoreInitial: true,
-      ignored: (rawPath: string) => WatcherService.isIgnoredPath(rawPath),
+      ignored: (rawPath: string) => this.isIgnoredPath(rawPath),
       persistent: true,
       ...options,
     });
@@ -32,10 +48,7 @@ export class WatcherService {
 
   static getInstance(rootDir: string): WatcherService {
     if (!WatcherService.instance) {
-      WatcherService.instance = new WatcherService(rootDir, {
-        ignored: (rawPath: string) =>
-          WatcherService.isIgnoredPath(rawPath, [...WATCHER_IGNORED_PATHS, 'node_modules']),
-      });
+      WatcherService.instance = new WatcherService(rootDir);
     }
 
     return WatcherService.instance;
@@ -43,10 +56,7 @@ export class WatcherService {
 
   static getInstanceOptimized(rootDir: string): WatcherService {
     if (!WatcherService.instanceOptimized) {
-      WatcherService.instanceOptimized = new WatcherService(rootDir, {
-        ignored: (rawPath: string) => WatcherService.isIgnoredPath(rawPath),
-        depth: 0,
-      });
+      WatcherService.instanceOptimized = new WatcherService(rootDir, { depth: 0 });
     }
 
     return WatcherService.instanceOptimized;
@@ -96,6 +106,10 @@ export class WatcherService {
     );
   }
 
+  async loadGitignore(): Promise<void> {
+    this.gitignoreMatcher = await loadGitignoreMatcher(this.rootDir);
+  }
+
   dispose(): void {
     this.watcher.close();
   }
@@ -139,18 +153,30 @@ export class WatcherService {
     return pathUtils.relative(this.rootDir, path);
   }
 
-  private static isIgnoredPath(rawPath: string, paths: string[] = WATCHER_IGNORED_PATHS): boolean {
+  private isIgnoredPath(rawPath: string): boolean {
     const absolutePath = pathUtils.resolve(rawPath);
-    const relativePath = pathUtils.relative(ROOT_DIR, absolutePath).replace(/\\/g, '/');
+    const relativePath = pathUtils.relative(this.rootDir, absolutePath).replace(/\\/g, '/');
     const normalizedPath = relativePath.replace(/^\.\//, '');
 
-    return paths.some((ignoredPath) => {
+    const staticMatch = WATCHER_IGNORED_PATHS.some((ignoredPath) => {
       const normalizedIgnoredPath = ignoredPath.replace(/^\.\//, '').replace(/\/+$/, '');
       return (
         normalizedPath === normalizedIgnoredPath ||
         normalizedPath.startsWith(`${normalizedIgnoredPath}/`)
       );
     });
+
+    if (staticMatch) return true;
+
+    if (this.gitignoreMatcher && normalizedPath) {
+      try {
+        return this.gitignoreMatcher.ignores(normalizedPath);
+      } catch {
+        return false;
+      }
+    }
+
+    return false;
   }
 
   private normalizeDirPath(dir: string): string {

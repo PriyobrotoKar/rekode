@@ -29,4 +29,7 @@ message Template {
     Environment environment = 5;
     string repo_url = 7;
     optional string description = 8;
+    string install_cmd = 9;
+    string build_cmd = 10;
+    string start_cmd = 11;
 }

@@ -18,6 +18,11 @@ RUN npm run build
 
 # ----------- STAGE 2: RUNTIME -----------
 FROM node:22-slim AS runner
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME/bin:$PATH"
+ENV PNPM_STORE_DIR=/pnpm/store
+RUN mkdir -p /pnpm/store && chmod -R 777 /pnpm
+RUN corepack enable
 
 RUN apt-get update && apt-get install -y \
     git \
@@ -26,6 +31,7 @@ RUN apt-get update && apt-get install -y \
     less \
     unzip \
     procps \
+    iproute2 \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /internal

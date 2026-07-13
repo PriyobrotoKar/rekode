@@ -6,14 +6,14 @@ import { Separator } from '@rekode/ui/components/separator';
 import { cn } from '@rekode/ui/lib/utils';
 
 const buttonGroupVariants = cva(
-  "has-[>[data-slot=button-group]]:gap-2 has-[select[aria-hidden=true]:last-child]:[&>[data-slot=select-trigger]:last-of-type]:rounded-r-4xl flex w-fit items-stretch *:focus-visible:z-10 *:focus-visible:relative [&>[data-slot=select-trigger]:not([class*='w-'])]:w-fit [&>input]:flex-1",
+  "has-[>[data-slot=button-group]]:gap-2 has-[select[aria-hidden=true]:last-child]:[&>[data-slot=select-trigger]:last-of-type]:rounded-r-sm flex w-fit items-stretch *:focus-visible:z-10 *:focus-visible:relative [&>[data-slot=select-trigger]:not([class*='w-'])]:w-fit [&>input]:flex-1",
   {
     variants: {
       orientation: {
         horizontal:
-          '[&>[data-slot]:not(:has(~[data-slot]))]:rounded-r-4xl! [&>[data-slot]~[data-slot]]:rounded-l-none [&>[data-slot]~[data-slot]]:border-l-0 *:data-slot:rounded-r-none',
+          '[&>[data-slot]:not(:has(~[data-slot]))]:rounded-r-sm! [&>*:not(:first-child)]:rounded-l-none [&>[data-slot]~[data-slot]]:border-l-0 [&>*:not(:last-child)]:rounded-r-none',
         vertical:
-          '[&>[data-slot]:not(:has(~[data-slot]))]:rounded-b-4xl! flex-col [&>[data-slot]~[data-slot]]:rounded-t-none [&>[data-slot]~[data-slot]]:border-t-0 *:data-slot:rounded-b-none',
+          '[&>[data-slot]:not(:has(~[data-slot]))]:rounded-b-sm! flex-col [&>[data-slot]~[data-slot]]:rounded-t-none [&>[data-slot]~[data-slot]]:border-t-0 *:data-slot:rounded-b-none',
       },
     },
     defaultVariants: {

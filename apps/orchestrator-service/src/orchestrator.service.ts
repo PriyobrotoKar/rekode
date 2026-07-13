@@ -65,11 +65,12 @@ export class OrchestratorService {
 
     const res = await this.containerProvider.createContainer({
       templateRepoUrl: template.repoUrl,
+      installCmd: template.installCmd,
+      buildCmd: template.buildCmd,
+      startCmd: template.startCmd,
       fileSystemPath: project.fileSystemPath,
       projectSlug: project.slug,
     });
-
-    console.log(res);
 
     await lastValueFrom(
       this.projectService.editProject({

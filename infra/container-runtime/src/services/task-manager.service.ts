@@ -1,4 +1,4 @@
-import { spawn } from 'node:child_process';
+import { ChildProcess, spawn } from 'node:child_process';
 import path from 'node:path';
 
 import { ROOT_DIR, WsNamespace } from '../lib/constants';
@@ -8,7 +8,7 @@ import { GitService } from './git.service';
 enum TaskId {
   CLONE_REPO = 'clone_repo',
   INSTALL_DEPS = 'install_deps',
-  START_PREVIEW = 'start_preview',
+  START_DEVELOPMENT_SERVER = 'start_development_server',
 }
 
 enum TaskStatus {
@@ -28,12 +28,16 @@ type Subscriber = (event: TaskEvent) => void;
 interface TaskManagerConfig {
   gitRepoUrl: string;
   installDepsCommand: string;
+  buildCommand: string;
+  startDevServerCommand: string;
   rootDir: string;
 }
 
 interface TaskState {
   id: TaskId;
   status: TaskStatus;
+  startTime?: number;
+  endTime?: number;
 }
 
 interface Snapshot {
@@ -45,12 +49,16 @@ export class TaskManagerService {
   private readonly gitService: GitService;
   private static instance?: TaskManagerService;
   private subscribers: Set<Subscriber>;
+  private readonly services: Map<string, ChildProcess>;
+  private static readonly INSTALL_LOG_LIMIT = 500;
+  private installLogs: string[] = [];
   snapshot: Snapshot;
 
   private constructor() {
     this.gitService = GitService.getInstance();
     this.snapshot = this.createInitialSnapshot();
     this.subscribers = new Set<Subscriber>();
+    this.services = new Map<string, ChildProcess>();
   }
 
   static getInstance() {
@@ -90,9 +98,26 @@ export class TaskManagerService {
     }
   }
 
+  getInstallLogs(): string[] {
+    return this.installLogs;
+  }
+
+  private appendInstallLog(chunk: string, stream: 'stdout' | 'stderr') {
+    this.installLogs.push(chunk);
+
+    if (this.installLogs.length > TaskManagerService.INSTALL_LOG_LIMIT) {
+      this.installLogs.splice(0, this.installLogs.length - TaskManagerService.INSTALL_LOG_LIMIT);
+    }
+
+    this.emit(WsNamespace.TASK_LOG, { taskId: TaskId.INSTALL_DEPS, chunk, stream });
+  }
+
   private updateTaskStatus(taskId: TaskId, status: TaskStatus) {
     const task = this.snapshot.tasks[taskId];
     task.status = status;
+
+    if (status === TaskStatus.RUNNING) task.startTime = Date.now();
+    if (status === TaskStatus.COMPLETED) task.endTime = Date.now();
 
     this.emit(WsNamespace.TASK_STATE_UPDATED, { taskId, task });
   }
@@ -113,8 +138,17 @@ export class TaskManagerService {
       this.updateTaskStatus(TaskId.CLONE_REPO, TaskStatus.COMPLETED);
 
       this.updateTaskStatus(TaskId.INSTALL_DEPS, TaskStatus.RUNNING);
-      await this.runCommand(config.installDepsCommand, config.rootDir);
+      await this.runInstallWithSyntheticLogs(config);
       this.updateTaskStatus(TaskId.INSTALL_DEPS, TaskStatus.COMPLETED);
+
+      this.updateTaskStatus(TaskId.START_DEVELOPMENT_SERVER, TaskStatus.RUNNING);
+      // await this.runCommand(config.buildCommand, config.rootDir);
+      await this.startService(
+        'dev_server' + '_' + config.startDevServerCommand.split(' ').join('_'),
+        config.startDevServerCommand,
+        config.rootDir,
+      );
+      this.updateTaskStatus(TaskId.START_DEVELOPMENT_SERVER, TaskStatus.COMPLETED);
 
       this.snapshot.status = TaskStatus.COMPLETED;
       this.emit(WsNamespace.TASK_STATE_UPDATED, {
@@ -135,7 +169,79 @@ export class TaskManagerService {
     }
   }
 
-  private async runCommand(command: string, cwd: string) {
+  private async runInstallWithSyntheticLogs(config: TaskManagerConfig) {
+    this.appendInstallLog(`$ ${config.installDepsCommand}\n`, 'stdout');
+    this.appendInstallLog('Installing dependencies...\n', 'stdout');
+
+    await this.runCommand(config.installDepsCommand, config.rootDir, TaskId.INSTALL_DEPS);
+
+    this.appendInstallLog('Dependencies installed successfully.\n', 'stdout');
+  }
+
+  private async startService(id: string, command: string, cwd: string, readyRegex?: RegExp) {
+    const [cmd, ...args] = command.split(' ');
+
+    if (!cmd) return;
+
+    const resolvedCwd = path.resolve(process.cwd(), cwd);
+
+    const child = spawn(cmd, args, {
+      cwd: resolvedCwd,
+      shell: false,
+      env: process.env,
+    });
+
+    this.services.set(id, child);
+
+    return new Promise<void>((resolve, reject) => {
+      let resolved = false;
+
+      const finish = () => {
+        if (!resolved) {
+          resolved = true;
+          resolve();
+        }
+      };
+
+      child.stdout.on('data', (data: Buffer) => {
+        const text = data.toString();
+
+        process.stdout.write(text);
+
+        // send logs to websocket if you want
+        // this.emit(WsNamespace.TERMINAL_OUTPUT, text);
+
+        if (readyRegex) {
+          if (readyRegex.test(text)) {
+            finish();
+          }
+        } else {
+          // If no ready regex was provided, resolve immediately
+          finish();
+        }
+      });
+
+      child.stderr.on('data', (data: Buffer) => {
+        process.stderr.write(data);
+
+        // this.emit(WsNamespace.TERMINAL_OUTPUT, data.toString());
+      });
+
+      child.on('error', reject);
+
+      child.on('exit', (code) => {
+        this.services.delete(id);
+
+        if (!resolved) {
+          reject(new Error(`Service "${id}" exited before becoming ready (code ${code})`));
+        } else {
+          console.log(`Service "${id}" exited (${code})`);
+        }
+      });
+    });
+  }
+
+  private async runCommand(command: string, cwd: string, taskId?: TaskId) {
     const [cmd, ...args] = command.split(' ');
 
     if (!cmd) return;
@@ -151,13 +257,18 @@ export class TaskManagerService {
       let stderr = '';
 
       runner.stdout.on('data', (data: Buffer) => {
-        process.stdout.write(data.toString());
+        const text = data.toString();
+        process.stdout.write(text);
+
+        if (taskId === TaskId.INSTALL_DEPS) this.appendInstallLog(text, 'stdout');
       });
 
       runner.stderr.on('data', (data: Buffer) => {
         const text = data.toString();
         stderr += text;
         process.stderr.write(text);
+
+        if (taskId === TaskId.INSTALL_DEPS) this.appendInstallLog(text, 'stderr');
       });
 
       runner.on('error', (error) => {

@@ -65,6 +65,9 @@ export interface Template {
   environment: Environment;
   repoUrl: string;
   description?: string | null | undefined;
+  installCmd: string;
+  buildCmd: string;
+  startCmd: string;
 }
 
 function createBaseGetAllTemplatesRequest(): GetAllTemplatesRequest {
@@ -206,7 +209,18 @@ export const GetAllTemplatesResponse: MessageFns<GetAllTemplatesResponse> = {
 };
 
 function createBaseTemplate(): Template {
-  return { id: "", slug: "", technologies: [], language: "", environment: 0, repoUrl: "", description: null };
+  return {
+    id: "",
+    slug: "",
+    technologies: [],
+    language: "",
+    environment: 0,
+    repoUrl: "",
+    description: null,
+    installCmd: "",
+    buildCmd: "",
+    startCmd: "",
+  };
 }
 
 export const Template: MessageFns<Template> = {
@@ -231,6 +245,15 @@ export const Template: MessageFns<Template> = {
     }
     if (message.description !== undefined && message.description !== null) {
       writer.uint32(66).string(message.description);
+    }
+    if (message.installCmd !== "") {
+      writer.uint32(74).string(message.installCmd);
+    }
+    if (message.buildCmd !== "") {
+      writer.uint32(82).string(message.buildCmd);
+    }
+    if (message.startCmd !== "") {
+      writer.uint32(90).string(message.startCmd);
     }
     return writer;
   },
@@ -298,6 +321,30 @@ export const Template: MessageFns<Template> = {
           message.description = reader.string();
           continue;
         }
+        case 9: {
+          if (tag !== 74) {
+            break;
+          }
+
+          message.installCmd = reader.string();
+          continue;
+        }
+        case 10: {
+          if (tag !== 82) {
+            break;
+          }
+
+          message.buildCmd = reader.string();
+          continue;
+        }
+        case 11: {
+          if (tag !== 90) {
+            break;
+          }
+
+          message.startCmd = reader.string();
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -322,6 +369,21 @@ export const Template: MessageFns<Template> = {
         ? globalThis.String(object.repo_url)
         : "",
       description: isSet(object.description) ? globalThis.String(object.description) : null,
+      installCmd: isSet(object.installCmd)
+        ? globalThis.String(object.installCmd)
+        : isSet(object.install_cmd)
+        ? globalThis.String(object.install_cmd)
+        : "",
+      buildCmd: isSet(object.buildCmd)
+        ? globalThis.String(object.buildCmd)
+        : isSet(object.build_cmd)
+        ? globalThis.String(object.build_cmd)
+        : "",
+      startCmd: isSet(object.startCmd)
+        ? globalThis.String(object.startCmd)
+        : isSet(object.start_cmd)
+        ? globalThis.String(object.start_cmd)
+        : "",
     };
   },
 
@@ -348,6 +410,15 @@ export const Template: MessageFns<Template> = {
     if (message.description !== undefined && message.description !== null) {
       obj.description = message.description;
     }
+    if (message.installCmd !== "") {
+      obj.installCmd = message.installCmd;
+    }
+    if (message.buildCmd !== "") {
+      obj.buildCmd = message.buildCmd;
+    }
+    if (message.startCmd !== "") {
+      obj.startCmd = message.startCmd;
+    }
     return obj;
   },
 
@@ -363,6 +434,9 @@ export const Template: MessageFns<Template> = {
     message.environment = object.environment ?? 0;
     message.repoUrl = object.repoUrl ?? "";
     message.description = object.description ?? undefined;
+    message.installCmd = object.installCmd ?? "";
+    message.buildCmd = object.buildCmd ?? "";
+    message.startCmd = object.startCmd ?? "";
     return message;
   },
 };

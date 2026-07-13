@@ -34,6 +34,9 @@ export interface Template {
   environment: Environment;
   repoUrl: string;
   description?: string | null | undefined;
+  installCmd: string;
+  buildCmd: string;
+  startCmd: string;
 }
 
 export const TEMPLATE_PACKAGE_NAME = "template";

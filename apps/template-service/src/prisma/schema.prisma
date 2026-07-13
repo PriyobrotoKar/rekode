@@ -27,6 +27,9 @@ model Template {
   language     String
   environment  TemplateEnvironment
   repoUrl      String
+  installCmd   String
+  buildCmd     String
+  startCmd     String
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
