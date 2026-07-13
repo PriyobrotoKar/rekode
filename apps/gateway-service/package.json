@@ -11,8 +11,10 @@
   "dependencies": {
     "@fastify/http-proxy": "^11.5.0",
     "@fastify/reply-from": "^12.6.2",
+    "@rekode/preview-bridge": "workspace:*",
     "fastify": "5.7.4",
-    "ioredis": "^5.11.1"
+    "ioredis": "^5.11.1",
+    "undici": "^7.0.0"
   },
   "devDependencies": {
     "@rekode/eslint-config": "workspace:*",

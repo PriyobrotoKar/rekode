@@ -1,5 +1,6 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
+import { PreviewBridgeClient } from '@rekode/preview-bridge/client';
 import {
   IconChevronLeft,
   IconChevronRight,
@@ -8,15 +9,15 @@ import {
   IconReload,
   IconWorld,
 } from '@tabler/icons-react';
-
+import { useParams } from '@tanstack/react-router';
 import { useAtom, useAtomValue } from 'jotai';
 
 import { Button } from '@rekode/ui/components/button';
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@rekode/ui/components/input-group';
+import { Separator } from '@rekode/ui/components/separator';
 import { Toggle } from '@rekode/ui/components/toggle';
 
 import { maximizePreviewAtom, showPreviewAtom } from '../lib/atoms';
-import { Separator } from '@rekode/ui/components/separator';
 
 interface PreviewProps {
   projectSlug: string;
@@ -32,7 +33,7 @@ export function Preview({ projectSlug }: PreviewProps) {
   return (
     <div className="border-l-border relative flex flex-1 flex-col border-l">
       <PreviewActions iframeRef={iframeRef} url={url} setUrl={setUrl} />
-      <Separator className={'bg-sidebar-border'}/>
+      <Separator className={'bg-sidebar-border'} />
       <iframe
         ref={iframeRef}
         title="Preview"
@@ -54,14 +55,30 @@ interface PreviewActionsProps {
 }
 
 function PreviewActions({ iframeRef, url }: PreviewActionsProps) {
-  const { pathname } = new URL(url);
   const [maximizePreview, setMaximizePreview] = useAtom(maximizePreviewAtom);
+  const [currentUrl, setCurrentUrl] = useState(url);
+  const { pathname } = new URL(currentUrl);
 
   const handleReload = () => {
     if (iframeRef.current) {
       iframeRef.current.src += '';
     }
   };
+
+  useEffect(() => {
+    const bridge = new PreviewBridgeClient(url);
+
+    const unsubscribe = bridge.subscribe((data) => {
+      if (data.type === 'url_change') {
+        setCurrentUrl(data.url);
+      }
+    });
+
+    return () => {
+      unsubscribe();
+      bridge.destroy();
+    };
+  }, [url]);
 
   return (
     <div className="bg-card flex h-7 items-center justify-between gap-1 p-0.5">
@@ -89,7 +106,7 @@ function PreviewActions({ iframeRef, url }: PreviewActionsProps) {
           <IconReload />
         </Button>
         <a href={url} target="_blank" rel="noopener noreferrer">
-          <Button size={'icon-xs'} variant={'ghost'} onClick={handleReload}>
+          <Button size={'icon-xs'} variant={'ghost'}>
             <IconExternalLink />
           </Button>
         </a>

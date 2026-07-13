@@ -1,0 +1,13 @@
+{
+  "extends": "@rekode/typescript-config/base.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "strictNullChecks": true,
+    "baseUrl": ".",
+    "paths": {
+      "@rekode/ui/*": ["./src/*"],
+    },
+  },
+  "include": ["src/**/*", "tsup.config.ts"],
+  "exclude": ["node_modules", "dist"],
+}

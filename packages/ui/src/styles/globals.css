@@ -5,6 +5,10 @@
 
 @import 'tw-animate-css';
 
+@import '@fontsource-variable/geist-mono';
+@import '@fontsource-variable/space-grotesk';
+@import '@fontsource-variable/work-sans/wght.css';
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
@@ -158,13 +162,13 @@
     @apply size-5 stroke-[1.8];
   }
 
-   .no-scrollbar::-webkit-scrollbar {
-     display: none;
-   }
-   .no-scrollbar {
-     -ms-overflow-style: none;  /* IE and Edge */
-     scrollbar-width: none;  /* Firefox */
-   }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+  }
 
   ::-webkit-scrollbar {
     @apply h-3 w-3;

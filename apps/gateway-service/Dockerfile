@@ -20,18 +20,19 @@ FROM base AS builder
 COPY --from=pruner /app/out/json/ .
 RUN bun install
 COPY --from=pruner /app/out/full/ .
-RUN bun run build
+RUN bun turbo build
 
 # Stage 6: Node.js runner (use: docker build --target runner-node .)
 FROM node:22-slim AS runner
 WORKDIR /app
 
-COPY --from=builder /app/apps/gateway-service/dist ./dist
-COPY --from=builder /app/apps/gateway-service/package.json ./package.json
-COPY --from=installer /app/node_modules ./node_modules
+COPY --from=builder /app .
+# COPY --from=builder /app/apps/gateway-service/dist ./dist
+# COPY --from=builder /app/apps/gateway-service/package.json ./package.json
+# COPY --from=installer /app/node_modules ./node_modules
 
 USER node
 EXPOSE 8080
 EXPOSE 8081
 
-ENTRYPOINT [ "npm", "run", "start" ]
+CMD ["node", "apps/gateway-service/dist/main.js"]

@@ -9,7 +9,12 @@ import { Button } from '@rekode/ui/components/button';
 import { Kbd, KbdGroup } from '@rekode/ui/components/kbd';
 import { Logo } from '@rekode/ui/components/logo';
 
-import { maximizePreviewAtom, showPreviewAtom, showTerminalAtom, workspaceTasksAtom } from '../lib/atoms';
+import {
+  maximizePreviewAtom,
+  showPreviewAtom,
+  showTerminalAtom,
+  workspaceTasksAtom,
+} from '../lib/atoms';
 import { getAllTemplatesQueryOptions, getProjectBySlugQueryOptions } from '../queries';
 
 export function WelcomeScreen() {
@@ -29,8 +34,6 @@ export function WelcomeScreen() {
   });
   const { data: templates } = useQuery(getAllTemplatesQueryOptions);
   const template = templates?.find((t) => t.id === data?.templateId);
-
-  console.log(data, isWorkspaceReady);
 
   if (!data || !template || !isWorkspaceReady || maximizePreview) return null;
 

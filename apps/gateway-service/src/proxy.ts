@@ -1,5 +1,7 @@
 import httpProxy from '@fastify/http-proxy';
+import { injectScript } from '@rekode/preview-bridge/server';
 import Fastify, { type FastifyReply, type FastifyRequest } from 'fastify';
+import { request as undiciRequest } from 'undici';
 
 import { client } from './lib/redis';
 
@@ -9,48 +11,62 @@ declare module 'fastify' {
   }
 }
 
-const INJECTED_SCRIPT = `<script>
-(function () {
-  function report() {
-    window.parent.postMessage({
-      type: 'urlchange',
-      pathname: window.location.pathname,
-      search: window.location.search,
-      hash: window.location.hash,
-    }, '*');
-  }
+// const INJECTED_SCRIPT = `<script>
+// (function () {
+//   function report() {
+//     window.parent.postMessage({
+//       type: 'urlchange',
+//       pathname: window.location.pathname,
+//       search: window.location.search,
+//       hash: window.location.hash,
+//     }, '*');
+//   }
 
-  report();
+//   report();
 
-  const push = history.pushState.bind(history);
-  history.pushState = (...args) => { push(...args); report(); };
+//   const push = history.pushState.bind(history);
+//   history.pushState = (...args) => { push(...args); report(); };
 
-  const replace = history.replaceState.bind(history);
-  history.replaceState = (...args) => { replace(...args); report(); };
+//   const replace = history.replaceState.bind(history);
+//   history.replaceState = (...args) => { replace(...args); report(); };
 
-  window.addEventListener('popstate', report);
+//   window.addEventListener('popstate', report);
 
-  window.addEventListener('message', (e) => {
-    if (e.data.type === 'urlback') history.back();
-    if (e.data.type === 'urlforward') history.forward();
-    if (e.data.type === 'urlreload') window.location.reload();
-  });
-})();
-</script>`;
+//   window.addEventListener('message', (e) => {
+//     if (e.data.type === 'urlback') history.back();
+//     if (e.data.type === 'urlforward') history.forward();
+//     if (e.data.type === 'urlreload') window.location.reload();
+//   });
+// })();
+// </script>`;
 
-function injectScript(html: string): string {
-  if (html.includes('<head>')) {
-    return html.replace('<head>', `<head>${INJECTED_SCRIPT}`);
-  }
-  if (html.includes('<html')) {
-    return html.replace(/<html[^>]*>/, (match) => `${match}${INJECTED_SCRIPT}`);
-  }
-  return `${INJECTED_SCRIPT}${html}`;
+// function injectScript(html: string): string {
+//   if (html.includes('<head>')) {
+//     return html.replace('<head>', `<head>${INJECTED_SCRIPT}`);
+//   }
+//   if (html.includes('<html')) {
+//     return html.replace(/<html[^>]*>/, (match) => `${match}${INJECTED_SCRIPT}`);
+//   }
+//   return `${INJECTED_SCRIPT}${html}`;
+// }
+
+function getContainerName(request: FastifyRequest): string {
+  return request.host?.split('.')[0] ?? '';
+}
+
+function getContainerPort(request: FastifyRequest): string {
+  return request.containerPort || '4321';
+}
+
+// Vite auto-allows *.localhost hosts, so we send this as the Host header
+// while still connecting to the container by its Docker DNS name.
+function getViteHost(name: string, port: string): string {
+  return `${name}.localhost:${port}`;
 }
 
 function getUpstreamUrl(request: FastifyRequest): string {
-  const name = request.host?.split('.')[0] ?? '';
-  const port = request.containerPort || '4321';
+  const name = getContainerName(request);
+  const port = getContainerPort(request);
   return `http://${name}:${port}`;
 }
 
@@ -70,33 +86,36 @@ async function fetchAndInject(
 ): Promise<boolean> {
   if (!isNavigationRequest(request)) return false;
 
+  const name = getContainerName(request);
+  const port = getContainerPort(request);
   const targetUrl = `${upstreamUrl}${request.url}`;
 
-  const upstreamResponse = await fetch(targetUrl, {
-    method: request.method,
+  // undici.request honours the host header we pass, unlike fetch() which
+  // always uses the URL authority. We send <name>.localhost:<port> so Vite's
+  // host-check middleware accepts the request (it auto-allows *.localhost).
+  const { statusCode, headers: upstreamHeaders, body } = await undiciRequest(targetUrl, {
+    method: request.method as 'GET',
     headers: {
       ...request.headers,
-      host: new URL(upstreamUrl).host,
+      host: getViteHost(name, port),
       'x-forwarded-host': request.headers.host ?? '',
       'x-forwarded-proto': 'http',
-    } as HeadersInit,
+    },
   });
 
-  const contentType = upstreamResponse.headers.get('content-type') ?? '';
+  const contentType = (upstreamHeaders['content-type'] as string | undefined) ?? '';
   if (!contentType.includes('text/html')) {
-    // Defense in depth: even with the check above, drain/cancel rather than
-    // abandoning a half-read upstream connection if this path is ever hit.
-    await upstreamResponse.body?.cancel().catch(() => {});
+    await body.dump().catch(() => {});
     return false;
   }
 
-  const html = await upstreamResponse.text();
-  const injected = injectScript(html);
-
-  // ...rest unchanged
+  const html = await body.text();
+  const injected = injectScript(html, {
+    targetOrigin: 'http://localhost:3000',
+  });
 
   // Forward upstream headers, strip problematic ones
-  upstreamResponse.headers.forEach((value, key) => {
+  for (const [key, value] of Object.entries(upstreamHeaders)) {
     if (
       [
         'content-security-policy',
@@ -106,12 +125,12 @@ async function fetchAndInject(
         'transfer-encoding',
       ].includes(key)
     )
-      return;
-    reply.header(key, value);
-  });
+      continue;
+    if (value !== undefined) reply.header(key, value as string);
+  }
 
   reply
-    .code(upstreamResponse.status)
+    .code(statusCode)
     .header('content-type', 'text/html; charset=utf-8')
     .send(injected);
 
@@ -124,18 +143,7 @@ function resolveTargetPort(request: FastifyRequest): string {
   const isWs = request.headers?.upgrade?.toLowerCase() === 'websocket';
   const path = (request.url ?? '').split('?')[0];
   const isTerminalSocket = isWs && path === '/';
-  const port = isTerminalSocket ? '9999' : (request.containerPort || '4321');
-
-    if (isWs) {
-      console.log('[ws-route]', {
-        host: request.host,
-        path,
-        containerPortOnRequest: request.containerPort,
-        resolvedPort: port,
-      });
-    }
-
-    return port;
+  return isTerminalSocket ? '9999' : getContainerPort(request);
 }
 
 proxy.register(httpProxy, {
@@ -155,14 +163,14 @@ proxy.register(httpProxy, {
   replyOptions: {
     getUpstream: (request) => {
       const name = request.host?.split('.')[0] ?? '';
-      return `http://${name}:${resolveTargetPort(request)}`;
+      return `http://${name}:${resolveTargetPort(request as FastifyRequest)}`;
     },
     rewriteRequestHeaders: (request, headers) => {
       const name = request.host?.split('.')[0] ?? '';
       const port = resolveTargetPort(request as FastifyRequest);
       return {
         ...headers,
-        host: `${name}:${port}`,
+        host: getViteHost(name, port),
         'x-forwarded-host': request.headers.host ?? '',
         'x-forwarded-proto': 'http',
       };
@@ -185,12 +193,13 @@ proxy.register(httpProxy, {
     },
   },
   wsClientOptions: {
-    rewriteRequestHeaders: (headers, request) => {
-      const name = request.host?.split('.')[0] ?? '';
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    rewriteRequestHeaders: (headers: Record<string, string>, request: any) => {
+      const name = (request.host as string | undefined)?.split('.')[0] ?? '';
       const port = resolveTargetPort(request as FastifyRequest);
       return {
         ...headers,
-        host: `${name}:${port}`,
+        host: getViteHost(name, port),
       };
     },
   },

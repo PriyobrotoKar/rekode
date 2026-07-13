@@ -15,6 +15,7 @@
     "@monaco-editor/react": "^4.7.0",
     "@pierre/trees": "^1.0.0-beta.3",
     "@rekode/ui": "workspace:*",
+    "@rekode/preview-bridge": "workspace:*",
     "@tabler/icons-react": "catalog:",
     "@tailwindcss/vite": "catalog:",
     "@tanstack/react-devtools": "^0.7.0",
