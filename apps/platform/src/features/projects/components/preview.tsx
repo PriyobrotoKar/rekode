@@ -24,7 +24,6 @@ interface PreviewProps {
 }
 
 export function Preview({ projectSlug }: PreviewProps) {
-  const iframeRef = useRef<HTMLIFrameElement>(null);
   const showPreview = useAtomValue(showPreviewAtom);
   const [url, setUrl] = useState(`http://${projectSlug}.localhost:8081`);
 
@@ -32,10 +31,9 @@ export function Preview({ projectSlug }: PreviewProps) {
 
   return (
     <div className="border-l-border relative flex flex-1 flex-col border-l">
-      <PreviewActions iframeRef={iframeRef} url={url} setUrl={setUrl} />
+      <PreviewActions url={url} setUrl={setUrl} />
       <Separator className={'bg-sidebar-border'} />
       <iframe
-        ref={iframeRef}
         title="Preview"
         loading="lazy"
         allow="location"
@@ -49,28 +47,35 @@ export function Preview({ projectSlug }: PreviewProps) {
 }
 
 interface PreviewActionsProps {
-  iframeRef: React.RefObject<HTMLIFrameElement | null>;
   url: string;
   setUrl: (url: string) => void;
 }
 
-function PreviewActions({ iframeRef, url }: PreviewActionsProps) {
+function PreviewActions({ url }: PreviewActionsProps) {
   const [maximizePreview, setMaximizePreview] = useAtom(maximizePreviewAtom);
   const [currentUrl, setCurrentUrl] = useState(url);
+  const [bridge, setBridge] = useState<PreviewBridgeClient | null>(null);
   const { pathname } = new URL(currentUrl);
 
   const handleReload = () => {
-    if (iframeRef.current) {
-      iframeRef.current.src += '';
+    if (bridge) {
+      console.log('reloading');
+      bridge.action({ type: 'url_reload' });
     }
   };
 
   useEffect(() => {
     const bridge = new PreviewBridgeClient(url);
+    setBridge(bridge);
 
     const unsubscribe = bridge.subscribe((data) => {
-      if (data.type === 'url_change') {
-        setCurrentUrl(data.url);
+      switch (data.type) {
+        case 'ready':
+          console.log('ready', data.url);
+          break;
+        case 'url_change':
+          setCurrentUrl(data.url);
+          break;
       }
     });
 
@@ -89,6 +94,9 @@ function PreviewActions({ iframeRef, url }: PreviewActionsProps) {
         <Button variant={'ghost'} size={'icon-xs'}>
           <IconChevronRight />
         </Button>
+        <Button size={'icon-xs'} variant={'ghost'} onClick={handleReload}>
+          <IconReload />
+        </Button>
       </div>
 
       <InputGroup className="h-6 border-0">
@@ -102,10 +110,7 @@ function PreviewActions({ iframeRef, url }: PreviewActionsProps) {
       </InputGroup>
 
       <div className="flex items-center">
-        <Button size={'icon-xs'} variant={'ghost'} onClick={handleReload}>
-          <IconReload />
-        </Button>
-        <a href={url} target="_blank" rel="noopener noreferrer">
+        <a href={currentUrl} target="_blank" rel="noopener noreferrer">
           <Button size={'icon-xs'} variant={'ghost'}>
             <IconExternalLink />
           </Button>
