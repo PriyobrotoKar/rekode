@@ -7,7 +7,12 @@ RUN apt-get update && apt-get install -y \
     python3 \
     make \
     g++ \
-    build-essential
+    build-essential \
+    curl \
+    unzip
+
+# Install rclone in builder
+RUN curl https://rclone.org/install.sh | bash
 
 COPY package*.json ./
 RUN npm ci
@@ -34,6 +39,8 @@ RUN apt-get update && apt-get install -y \
     iproute2 \
     && rm -rf /var/lib/apt/lists/*
 
+COPY --from=builder /usr/bin/rclone /usr/bin/rclone
+
 WORKDIR /internal
 
 # Create non-root user
@@ -47,7 +54,6 @@ COPY --from=builder /internal/package*.json ./
 RUN chmod -R 755 /internal
 
 # Create workspace directory
-RUN cd ..
 RUN mkdir -p /workspace && chown -R coder:coder /workspace
 RUN chown -R coder:coder /internal
 

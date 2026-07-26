@@ -4,13 +4,14 @@ import {
   IContainerProvider,
 } from '@/interfaces/container-provider';
 import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import Docker from 'dockerode';
 
 @Injectable()
 export class DockerProvider implements IContainerProvider {
   private readonly docker: Docker;
 
-  constructor() {
+  constructor(private readonly configService: ConfigService) {
     this.docker = new Docker();
   }
 
@@ -26,6 +27,11 @@ export class DockerProvider implements IContainerProvider {
         `INSTALL_CMD=${input.installCmd}`,
         `BUILD_CMD=${input.buildCmd}`,
         `START_CMD=${input.startCmd}`,
+        `RCLONE_S3_PROVIDER=AWS`,
+        `RCLONE_S3_ACCESS_KEY_ID=${this.configService.get('AWS_ACCESS_KEY_ID')}`,
+        `RCLONE_S3_SECRET_ACCESS_KEY=${this.configService.get('AWS_SECRET_ACCESS_KEY')}`,
+        `RCLONE_S3_REGION=${this.configService.get('AWS_S3_REGION')}`,
+        `S3_BUCKET=${this.configService.get('S3_BUCKET')}`,
       ],
     });
 

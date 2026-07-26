@@ -1,19 +1,23 @@
 import { WebSocket } from 'ws';
 
 import { ROOT_DIR, WsNamespace } from './lib/constants';
+import { ContainerService } from './services/container.service';
 import { FileManager } from './services/file-manager.service';
 import { GitService } from './services/git.service';
+import { PersistanceService } from './services/persistance.service';
 import { TaskManagerService } from './services/task-manager.service';
 import { TerminalSession } from './services/terminal.service';
 import { WatcherService } from './services/watcher.service';
 
 export function handleConnection(ws: WebSocket) {
   const taskManager = TaskManagerService.getInstance();
+  const persistanceService = PersistanceService.getInstance();
   const terminal = new TerminalSession();
   const git = GitService.getInstance();
   const fileManager = new FileManager();
   const globalWatcher = WatcherService.getInstance(ROOT_DIR);
   const selectiveWatcher = WatcherService.getInstanceOptimized(ROOT_DIR);
+  const container = new ContainerService(async () => await persistanceService.sync());
 
   if (taskManager.snapshot.tasks.clone_repo.status !== 'completed') {
     globalWatcher.pause();
@@ -54,8 +58,8 @@ export function handleConnection(ws: WebSocket) {
     const task = event.payload?.task;
 
     if (task?.id === 'clone_repo' && task.status === 'completed') {
-      void Promise.all([globalWatcher.loadGitignore(), selectiveWatcher.loadGitignore()]).then(
-        () => globalWatcher.resume(),
+      void Promise.all([globalWatcher.loadGitignore(), selectiveWatcher.loadGitignore()]).then(() =>
+        globalWatcher.resume(),
       );
     }
 
@@ -128,6 +132,11 @@ export function handleConnection(ws: WebSocket) {
 
       case WsNamespace.FILE_WRITE: {
         await fileManager.writeFile(parsed.payload.path, parsed.payload.content);
+        break;
+      }
+
+      case WsNamespace.HEARTBEAT: {
+        container.ping();
         break;
       }
     }

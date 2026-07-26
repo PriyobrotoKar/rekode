@@ -10,6 +10,9 @@ interface SocketContextProps {
 
 const SocketContext = createContext<SocketContextProps | null>(null);
 
+const HEARTBEAT_EVENT = 'heartbeat';
+const HEARTBEAT_INTERVAL = 5000; // 5 SECS
+
 export function SocketProvider({
   children,
   socketUrl,
@@ -109,6 +112,16 @@ export function SocketProvider({
       setIsReady(false);
     };
   }, [socketUrl]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      send(HEARTBEAT_EVENT, null);
+    }, 3000);
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, []);
 
   return (
     <SocketContext.Provider

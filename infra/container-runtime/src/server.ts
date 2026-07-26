@@ -9,6 +9,7 @@ import { TaskManagerService } from './services/task-manager.service';
 const wss = new WebSocketServer({ port: 9999 });
 const portWatcher = new PortWatcher(1000);
 const taskManager = TaskManagerService.getInstance();
+
 const repoUrl = process.env.REPO_URL ?? 'https://github.com/mikro-orm/express-js-example-app.git';
 const installCommand = process.env.INSTALL_CMD ?? 'npm i';
 const buildCommand = process.env.BUILD_CMD ?? 'npm run build';

@@ -18,6 +18,8 @@ export enum WsNamespace {
   FILE_WRITE = 'file.write',
 
   GIT_STATUS_UPDATED = 'git.status.updated',
+
+  HEARTBEAT = 'heartbeat',
 }
 
 export const ROOT_DIR = '../workspace';
@@ -31,3 +33,5 @@ export const WATCHER_IGNORED_PATHS = [
   '.turbo',
   'coverage',
 ];
+
+export const PING_INTERVAL = 5; // in secs
