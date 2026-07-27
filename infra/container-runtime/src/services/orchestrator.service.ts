@@ -32,4 +32,11 @@ export class OrchestratorService {
       body: JSON.stringify({ port, name: this.CONTAINER_NAME }),
     });
   }
+
+  static async stopProcess() {
+    return this.fetch(`/process/${this.CONTAINER_NAME}`, {
+      method: 'DELETE',
+      body: JSON.stringify({}),
+    });
+  }
 }

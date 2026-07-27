@@ -3,13 +3,14 @@ import {
   CreateContainterInput,
   IContainerProvider,
 } from '@/interfaces/container-provider';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import Docker from 'dockerode';
 
 @Injectable()
 export class DockerProvider implements IContainerProvider {
   private readonly docker: Docker;
+  private readonly logger = new Logger(DockerProvider.name);
 
   constructor(private readonly configService: ConfigService) {
     this.docker = new Docker();
@@ -54,17 +55,30 @@ export class DockerProvider implements IContainerProvider {
     };
   }
 
+  async destroyContainer(name: string): Promise<void> {
+    const container = this.docker.getContainer(name);
+    await this.removeContainer(container);
+    this.logger.log(`Container ${name} has been destroyed`);
+  }
+
   private async inspectContainer(
     container: Docker.Container,
   ): Promise<Docker.ContainerInspectInfo> {
+    return this.promisify((cb) => container.inspect(cb));
+  }
+
+  private async removeContainer(container: Docker.Container): Promise<void> {
+    return this.promisify((cb) => container.remove({ force: true }, cb));
+  }
+
+  private async promisify(fn: (callback: (error: any, result: any) => void) => void): Promise<any> {
     return new Promise((resolve, reject) => {
-      container.inspect({}, (error, info) => {
-        if (error || !info) {
+      fn((error, result) => {
+        if (error) {
           reject(error);
           return;
         }
-
-        resolve(info);
+        resolve(result);
       });
     });
   }

@@ -15,6 +15,7 @@ import {
 import { lastValueFrom } from 'rxjs';
 
 import { ProjectCreatedDto } from './dto/project-created.dto';
+import { ProjectStatusChangedDto } from './dto/project-status-change.dto';
 import { CONTAINER_PROVIDER, type IContainerProvider } from './interfaces/container-provider';
 
 @Injectable()
@@ -80,5 +81,10 @@ export class OrchestratorService {
         containerUrl: res.containerUrl,
       }),
     );
+  }
+
+  async destroyContainer(data: ProjectStatusChangedDto) {
+    this.logger.log(`Destroying container for project ${data.projectSlug}`);
+    await this.containerProvider.destroyContainer(data.projectSlug);
   }
 }

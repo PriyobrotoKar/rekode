@@ -4,6 +4,7 @@ import { ROOT_DIR, WsNamespace } from './lib/constants';
 import { ContainerService } from './services/container.service';
 import { FileManager } from './services/file-manager.service';
 import { GitService } from './services/git.service';
+import { OrchestratorService } from './services/orchestrator.service';
 import { PersistanceService } from './services/persistance.service';
 import { TaskManagerService } from './services/task-manager.service';
 import { TerminalSession } from './services/terminal.service';
@@ -17,7 +18,10 @@ export function handleConnection(ws: WebSocket) {
   const fileManager = new FileManager();
   const globalWatcher = WatcherService.getInstance(ROOT_DIR);
   const selectiveWatcher = WatcherService.getInstanceOptimized(ROOT_DIR);
-  const container = new ContainerService(async () => await persistanceService.sync());
+  const container = new ContainerService(async () => {
+    await persistanceService.sync();
+    await OrchestratorService.stopProcess();
+  });
 
   if (taskManager.snapshot.tasks.clone_repo.status !== 'completed') {
     globalWatcher.pause();

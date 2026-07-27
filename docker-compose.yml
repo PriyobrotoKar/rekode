@@ -8,6 +8,7 @@ services:
     image: 'rekode/gateway-service:latest'
     environment:
       REDIS_URL: redis://redis:6379
+      API_GATEWAY_URL: http://host.docker.internal:8000
     ports:
       - '8080:8080'
       - '8081:8081'

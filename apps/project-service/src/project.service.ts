@@ -120,10 +120,7 @@ export class ProjectService {
     this.logger.log(`Requested to edit project: ${dto.slug}`);
 
     const project = await this.prisma.project.findUnique({
-      where: {
-        slug: dto.slug,
-        userId: dto.userId,
-      },
+      where: dto.userId ? { slug: dto.slug, userId: dto.userId } : { slug: dto.slug },
       select: {
         id: true,
       },
@@ -171,6 +168,13 @@ export class ProjectService {
       },
       data,
     });
+
+    if (mappedStatus) {
+      this.kafkaClient.emit('project.status.changed', {
+        projectSlug: updatedProject.slug,
+        status: projectStatusFromJSON(`PROJECT_STATUS_${updatedProject.status}`),
+      });
+    }
 
     return { project: this.toProtoProject(updatedProject) };
   }

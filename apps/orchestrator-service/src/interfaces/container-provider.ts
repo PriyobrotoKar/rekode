@@ -17,4 +17,5 @@ export interface CreateContainerOutput {
 
 export interface IContainerProvider {
   createContainer(input: CreateContainterInput): Promise<CreateContainerOutput>;
+  destroyContainer(name: string): Promise<void>;
 }
