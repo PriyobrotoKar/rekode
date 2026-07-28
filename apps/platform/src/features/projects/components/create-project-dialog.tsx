@@ -26,7 +26,11 @@ import {
   type TemplateCategory,
 } from '../lib/constants';
 
-export function CreateProjectDialog() {
+interface CreateProjectDialogProps {
+  trigger?: React.ReactElement;
+}
+
+export function CreateProjectDialog({ trigger }: CreateProjectDialogProps) {
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState<TemplateCategory | null>(null);
   const [selectedTemplate, setSelectedTemplate] = useAtom(templateAtom);
@@ -60,10 +64,12 @@ export function CreateProjectDialog() {
     <Dialog>
       <DialogTrigger
         render={
-          <Button variant="default" size="sm">
-            <IconPlayerPlay data-icon="inline-start" />
-            Start with template
-          </Button>
+          trigger ?? (
+            <Button variant="default" size="sm">
+              <IconPlayerPlay data-icon="inline-start" />
+              Start with template
+            </Button>
+          )
         }
       />
       <DialogContent

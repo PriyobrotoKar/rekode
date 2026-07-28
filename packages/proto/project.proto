@@ -5,6 +5,8 @@ package project;
 service ProjectService {
   rpc CreateProject(CreateProjectRequest) returns (CreateProjectResponse) {}
   rpc GetProject(GetProjectRequest) returns (GetProjectResponse) {}
+  rpc GetAllProjects(GetAllProjectsRequest) returns (GetAllProjectsResponse) {}
+  rpc StartProject(StartProjectRequest) returns (StartProjectResponse) {}
   rpc EditProject(EditProjectRequest) returns (EditProjectResponse) {}
 }
 
@@ -27,6 +29,21 @@ message GetProjectRequest {
 
 message GetProjectResponse {
   Project project = 1;
+}
+
+message StartProjectRequest {
+  string slug = 1;
+  string user_id = 2;
+}
+
+message StartProjectResponse {}
+
+message GetAllProjectsRequest {
+  string user_id = 1;
+}
+
+message GetAllProjectsResponse {
+  repeated Project projects = 1;
 }
 
 message EditProjectRequest {

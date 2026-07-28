@@ -144,6 +144,22 @@ export interface GetProjectResponse {
   project: Project | null;
 }
 
+export interface StartProjectRequest {
+  slug: string;
+  userId: string;
+}
+
+export interface StartProjectResponse {
+}
+
+export interface GetAllProjectsRequest {
+  userId: string;
+}
+
+export interface GetAllProjectsResponse {
+  projects: Project[];
+}
+
 export interface EditProjectRequest {
   slug: string;
   userId: string;
@@ -501,6 +517,253 @@ export const GetProjectResponse: MessageFns<GetProjectResponse> = {
     message.project = (object.project !== undefined && object.project !== null)
       ? Project.fromPartial(object.project)
       : null;
+    return message;
+  },
+};
+
+function createBaseStartProjectRequest(): StartProjectRequest {
+  return { slug: "", userId: "" };
+}
+
+export const StartProjectRequest: MessageFns<StartProjectRequest> = {
+  encode(message: StartProjectRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.slug !== "") {
+      writer.uint32(10).string(message.slug);
+    }
+    if (message.userId !== "") {
+      writer.uint32(18).string(message.userId);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): StartProjectRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseStartProjectRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.slug = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.userId = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): StartProjectRequest {
+    return {
+      slug: isSet(object.slug) ? globalThis.String(object.slug) : "",
+      userId: isSet(object.userId)
+        ? globalThis.String(object.userId)
+        : isSet(object.user_id)
+        ? globalThis.String(object.user_id)
+        : "",
+    };
+  },
+
+  toJSON(message: StartProjectRequest): unknown {
+    const obj: any = {};
+    if (message.slug !== "") {
+      obj.slug = message.slug;
+    }
+    if (message.userId !== "") {
+      obj.userId = message.userId;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<StartProjectRequest>): StartProjectRequest {
+    return StartProjectRequest.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<StartProjectRequest>): StartProjectRequest {
+    const message = createBaseStartProjectRequest();
+    message.slug = object.slug ?? "";
+    message.userId = object.userId ?? "";
+    return message;
+  },
+};
+
+function createBaseStartProjectResponse(): StartProjectResponse {
+  return {};
+}
+
+export const StartProjectResponse: MessageFns<StartProjectResponse> = {
+  encode(_: StartProjectResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): StartProjectResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseStartProjectResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(_: any): StartProjectResponse {
+    return {};
+  },
+
+  toJSON(_: StartProjectResponse): unknown {
+    const obj: any = {};
+    return obj;
+  },
+
+  create(base?: DeepPartial<StartProjectResponse>): StartProjectResponse {
+    return StartProjectResponse.fromPartial(base ?? {});
+  },
+  fromPartial(_: DeepPartial<StartProjectResponse>): StartProjectResponse {
+    const message = createBaseStartProjectResponse();
+    return message;
+  },
+};
+
+function createBaseGetAllProjectsRequest(): GetAllProjectsRequest {
+  return { userId: "" };
+}
+
+export const GetAllProjectsRequest: MessageFns<GetAllProjectsRequest> = {
+  encode(message: GetAllProjectsRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.userId !== "") {
+      writer.uint32(10).string(message.userId);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): GetAllProjectsRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetAllProjectsRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.userId = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GetAllProjectsRequest {
+    return {
+      userId: isSet(object.userId)
+        ? globalThis.String(object.userId)
+        : isSet(object.user_id)
+        ? globalThis.String(object.user_id)
+        : "",
+    };
+  },
+
+  toJSON(message: GetAllProjectsRequest): unknown {
+    const obj: any = {};
+    if (message.userId !== "") {
+      obj.userId = message.userId;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<GetAllProjectsRequest>): GetAllProjectsRequest {
+    return GetAllProjectsRequest.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<GetAllProjectsRequest>): GetAllProjectsRequest {
+    const message = createBaseGetAllProjectsRequest();
+    message.userId = object.userId ?? "";
+    return message;
+  },
+};
+
+function createBaseGetAllProjectsResponse(): GetAllProjectsResponse {
+  return { projects: [] };
+}
+
+export const GetAllProjectsResponse: MessageFns<GetAllProjectsResponse> = {
+  encode(message: GetAllProjectsResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    for (const v of message.projects) {
+      Project.encode(v!, writer.uint32(10).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): GetAllProjectsResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetAllProjectsResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.projects.push(Project.decode(reader, reader.uint32()));
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GetAllProjectsResponse {
+    return {
+      projects: globalThis.Array.isArray(object?.projects) ? object.projects.map((e: any) => Project.fromJSON(e)) : [],
+    };
+  },
+
+  toJSON(message: GetAllProjectsResponse): unknown {
+    const obj: any = {};
+    if (message.projects?.length) {
+      obj.projects = message.projects.map((e) => Project.toJSON(e));
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<GetAllProjectsResponse>): GetAllProjectsResponse {
+    return GetAllProjectsResponse.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<GetAllProjectsResponse>): GetAllProjectsResponse {
+    const message = createBaseGetAllProjectsResponse();
+    message.projects = object.projects?.map((e) => Project.fromPartial(e)) || [];
     return message;
   },
 };

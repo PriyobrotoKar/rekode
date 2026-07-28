@@ -12,9 +12,21 @@ export const getAllTemplatesQueryOptions = queryOptions({
   },
 });
 
+export const getAllProjectsQueryOptions = queryOptions({
+  queryKey: ['projects'],
+  queryFn: async () => {
+    const response = await ProjectController.getAllProjects();
+    return response?.projects ?? [];
+  },
+});
+
 export const createProjectMutationOptions = mutationOptions({
   mutationFn: (project: Omit<CreateProjectRequest, 'userId'>) =>
     ProjectController.createProject(project),
+});
+
+export const startProjectMutationOptions = mutationOptions({
+  mutationFn: (slug: string) => ProjectController.startProject(slug),
 });
 
 export const getProjectBySlugQueryOptions = (slug: string) =>

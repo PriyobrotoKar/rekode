@@ -4,6 +4,7 @@ import path from 'node:path';
 import { ROOT_DIR, WsNamespace } from '../lib/constants';
 import { sleep } from '../lib/utils';
 import { GitService } from './git.service';
+import { PersistanceService } from './persistance.service';
 
 enum TaskId {
   CLONE_REPO = 'clone_repo',
@@ -54,8 +55,11 @@ export class TaskManagerService {
   private installLogs: string[] = [];
   snapshot: Snapshot;
 
+  private readonly persistanceService: PersistanceService;
+
   private constructor() {
     this.gitService = GitService.getInstance();
+    this.persistanceService = PersistanceService.getInstance();
     this.snapshot = this.createInitialSnapshot();
     this.subscribers = new Set<Subscriber>();
     this.services = new Map<string, ChildProcess>();
@@ -134,7 +138,7 @@ export class TaskManagerService {
       await sleep(2000);
 
       this.updateTaskStatus(TaskId.CLONE_REPO, TaskStatus.RUNNING);
-      await this.gitService.cloneRepo(config.gitRepoUrl);
+      await this.persistanceService.restore(() => this.gitService.cloneRepo(config.gitRepoUrl));
       this.updateTaskStatus(TaskId.CLONE_REPO, TaskStatus.COMPLETED);
 
       this.updateTaskStatus(TaskId.INSTALL_DEPS, TaskStatus.RUNNING);

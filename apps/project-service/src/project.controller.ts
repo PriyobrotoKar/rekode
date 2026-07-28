@@ -4,10 +4,14 @@ import {
   CreateProjectResponse,
   EditProjectRequest,
   EditProjectResponse,
+  GetAllProjectsRequest,
+  GetAllProjectsResponse,
   GetProjectRequest,
   GetProjectResponse,
   ProjectServiceController,
   ProjectServiceControllerMethods,
+  StartProjectRequest,
+  StartProjectResponse,
 } from '@rekode/types/server/proto/project';
 import { Observable } from 'rxjs';
 
@@ -28,6 +32,18 @@ export class ProjectController implements ProjectServiceController {
     request: GetProjectRequest,
   ): Promise<GetProjectResponse> | Observable<GetProjectResponse> | GetProjectResponse {
     return this.projectService.getProject(request);
+  }
+
+  getAllProjects(
+    request: GetAllProjectsRequest,
+  ): Promise<GetAllProjectsResponse> | Observable<GetAllProjectsResponse> | GetAllProjectsResponse {
+    return this.projectService.getAllProjects(request);
+  }
+
+  startProject(
+    request: StartProjectRequest,
+  ): Promise<StartProjectResponse> | Observable<StartProjectResponse> | StartProjectResponse {
+    return this.projectService.startProject(request);
   }
 
   editProject(

@@ -8,10 +8,12 @@ import {
 import {
   CreateProjectRequest,
   EditProjectRequest,
+  GetAllProjectsRequest,
   GetProjectRequest,
   ProjectStatus,
   ProjectVisibility,
   Project as ProtoProject,
+  StartProjectRequest,
 } from '@rekode/types/server/proto/project';
 
 import { Project } from './generated/prisma/client';
@@ -114,6 +116,40 @@ export class ProjectService {
     return {
       project: this.toProtoProject(project),
     };
+  }
+
+  async startProject({ slug, userId }: StartProjectRequest) {
+    this.logger.log(`User: ${userId} requested to start project: ${slug}`);
+
+    const project = await this.prisma.project.findUnique({
+      where: { slug, userId },
+    });
+
+    if (!project) {
+      this.logger.error(`Project not found with slug ${slug} for user ${userId}`);
+      throw new RpcException({
+        code: status.NOT_FOUND,
+        message: `Project does not exist`,
+      });
+    }
+
+    this.kafkaClient.emit('project.created', {
+      projectSlug: project.slug,
+      userId: project.userId,
+    });
+
+    return {};
+  }
+
+  async getAllProjects({ userId }: GetAllProjectsRequest) {
+    this.logger.log(`User: ${userId} requested to get all projects`);
+
+    const projects = await this.prisma.project.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return { projects: projects.map((p) => this.toProtoProject(p)) };
   }
 
   async editProject(dto: EditProjectRequest) {

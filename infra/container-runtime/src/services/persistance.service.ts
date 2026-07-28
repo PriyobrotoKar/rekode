@@ -47,7 +47,23 @@ export class PersistanceService {
     });
   }
 
-  async restore() {
+  private async pathExists(): Promise<boolean> {
+    console.log('Checking if path exists...');
+    return new Promise((resolve) => {
+      const proc = spawn('rclone', ['ls', this.s3Path], { env: process.env });
+      proc.on('close', (code) => resolve(code === 0));
+      proc.on('error', () => resolve(false));
+    });
+  }
+
+  async restore(onNotFound?: () => Promise<void>): Promise<void> {
+    console.log('Restoring files....');
+    const exists = await this.pathExists();
+    if (!exists) {
+      console.log('Path does not exist, skipping restore.');
+      if (onNotFound) await onNotFound();
+      return;
+    }
     await this.runCommand(['copy', this.s3Path, this.localPath]);
   }
 

@@ -24,9 +24,19 @@ export class ProjectController {
     this.projectService = this.client.getService<ProjectServiceClient>(PROJECT_SERVICE_NAME);
   }
 
+  @Get()
+  getAllProjects(@CurrentUser() user: JwtPayload) {
+    return this.projectService.getAllProjects({ userId: user.id });
+  }
+
   @Post()
   createProject(@Body() dto: CreateProjectDto, @CurrentUser() user: JwtPayload) {
     return this.projectService.createProject({ userId: user.id, ...dto });
+  }
+
+  @Post(':slug/start')
+  startProject(@Param('slug') slug: string, @CurrentUser() user: JwtPayload) {
+    return this.projectService.startProject({ slug, userId: user.id });
   }
 
   @Public()

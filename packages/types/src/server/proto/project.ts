@@ -51,6 +51,22 @@ export interface GetProjectResponse {
   project: Project | null;
 }
 
+export interface StartProjectRequest {
+  slug: string;
+  userId: string;
+}
+
+export interface StartProjectResponse {
+}
+
+export interface GetAllProjectsRequest {
+  userId: string;
+}
+
+export interface GetAllProjectsResponse {
+  projects: Project[];
+}
+
 export interface EditProjectRequest {
   slug: string;
   userId: string;
@@ -87,6 +103,10 @@ export interface ProjectServiceClient {
 
   getProject(request: GetProjectRequest): Observable<GetProjectResponse>;
 
+  getAllProjects(request: GetAllProjectsRequest): Observable<GetAllProjectsResponse>;
+
+  startProject(request: StartProjectRequest): Observable<StartProjectResponse>;
+
   editProject(request: EditProjectRequest): Observable<EditProjectResponse>;
 }
 
@@ -99,6 +119,14 @@ export interface ProjectServiceController {
     request: GetProjectRequest,
   ): Promise<GetProjectResponse> | Observable<GetProjectResponse> | GetProjectResponse;
 
+  getAllProjects(
+    request: GetAllProjectsRequest,
+  ): Promise<GetAllProjectsResponse> | Observable<GetAllProjectsResponse> | GetAllProjectsResponse;
+
+  startProject(
+    request: StartProjectRequest,
+  ): Promise<StartProjectResponse> | Observable<StartProjectResponse> | StartProjectResponse;
+
   editProject(
     request: EditProjectRequest,
   ): Promise<EditProjectResponse> | Observable<EditProjectResponse> | EditProjectResponse;
@@ -106,7 +134,7 @@ export interface ProjectServiceController {
 
 export function ProjectServiceControllerMethods() {
   return function (constructor: Function) {
-    const grpcMethods: string[] = ["createProject", "getProject", "editProject"];
+    const grpcMethods: string[] = ["createProject", "getProject", "getAllProjects", "startProject", "editProject"];
     for (const method of grpcMethods) {
       const descriptor: any = Reflect.getOwnPropertyDescriptor(constructor.prototype, method);
       GrpcMethod("ProjectService", method)(constructor.prototype[method], method, descriptor);
